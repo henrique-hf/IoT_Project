@@ -94,14 +94,13 @@ class RegisterPackage(object):
 
 if __name__ == '__main__':
 
-    #Creating a new channel
+    #Creating a new channe
     test = RegisterPackage()
 
     url = 'https://api.thingspeak.com/channels.json'
     payload = {"api_key" : test.API_KEY, 'name' : test.idNumber()}
     r = requests.post(url,data = payload)
     print r.content
-
 
 
 
