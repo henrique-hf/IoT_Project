@@ -40,7 +40,13 @@ class RegisterPackage(object):
                 print ("Invalid telephone number. Type again.")
                 self.mobile = raw_input("Telephone number: ")
 
-        return self.name, self.mobile, self.addressStreet, self.addressNumber, self.addressRing
+        data = {'Name' : self.name,
+                'Mobile' : self.mobile,
+                'Street' : self.addressStreet,
+                'Ring' : self.addressRing,
+                'Number' : self.addressNumber}
+
+        return data
 
 
     def idNumber(self):
