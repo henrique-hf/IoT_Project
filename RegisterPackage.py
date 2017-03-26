@@ -6,13 +6,14 @@ import json
 import datetime
 
 class RegisterPackage(object):
+    exposed = True;
 
     """Class used to collect the information about the source and destination,
     generate a unique tracking number for the package and send it to Thingspeak"""
 
     def __init__(self):
 
-        self.API_KEY = 7C2YGM6HF9E63AG2
+        self.API_KEY = '7C2YGM6HF9E63AG2'
 
 
     def read(self):
@@ -84,7 +85,7 @@ class RegisterPackage(object):
     #def PUT(self):
 
 
-    def GET(self):
+    def GET(self,*uri,*params):
 
         """Get the list of channels created before"""
 
@@ -93,5 +94,9 @@ class RegisterPackage(object):
         a = requests.get(url).content
 
         return a
+
+
+if __name__ == '__main__':
+
 
 
