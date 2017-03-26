@@ -51,8 +51,9 @@ class RegisterPackage(object):
         """Generate a random number that will be used as an ID for the package and check if that
         number hasn't been used before for other package."""
 
-        time = datetime.datetime
-        return time
+        time = datetime.datetime.today()
+
+        return time.
 
 
     def checkData(self):
