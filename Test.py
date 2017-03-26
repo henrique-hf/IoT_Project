@@ -12,10 +12,9 @@ def testRead():
     return read, check
 
 #print testRead()
-#a = testRead()
+a = testRead()
 test = RegisterPackage()
-a = test.GET()
-b = json.loads(a)
+b = test.read();
 print a
 print b
 print b[0]['id']
