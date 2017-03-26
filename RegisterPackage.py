@@ -1,12 +1,8 @@
-import random
-import cherrypy
 import requests
-import urllib2
 import json
 import datetime
 
 class RegisterPackage(object):
-    exposed = True
 
     """Class used to collect the information about the source and destination,
     generate a unique tracking number for the package and send it to Thingspeak"""
@@ -14,6 +10,7 @@ class RegisterPackage(object):
     def __init__(self):
 
         self.API_KEY = '7C2YGM6HF9E63AG2'
+        self.time = datetime.datetime.today()
 
 
     def read(self):
@@ -48,12 +45,10 @@ class RegisterPackage(object):
 
     def idNumber(self):
 
-        """Generate a random number that will be used as an ID for the package and check if that
-        number hasn't been used before for other package."""
+        """Generate a number based on timestamp that will be used as the channel
+        name of that package"""
 
-        time = datetime.datetime.today()
-
-        #return time.
+        return "%02d%02d%02d%02d%04d" % (self.time.minute, self.time.hour, self.time.day, self.time.month, self.time.year)
 
 
     def checkData(self):
