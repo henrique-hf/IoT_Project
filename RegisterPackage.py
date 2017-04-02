@@ -77,6 +77,15 @@ class RegisterPackage(object):
             else:
                 print ("Invalid input.")
 
+    
+    def channelIDretrieve(self,truckID):
+        channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
+        channels_json = json.loads(channels)
+
+        for ch in channels_json["channels"]:
+            if ch.get("name") == str(truckID):
+                return str(ch.get("id"))
+
 
 if __name__ == '__main__':
 
@@ -84,5 +93,5 @@ if __name__ == '__main__':
     rp = RegisterPackage()
     data = rp.read()
     p.insertPacket(rp.idNumber(),data.get('name'),data.get('street'),data.get('ring'),data.get('number'),data.get('mobile'))
-    p.packetInTruck(rp.idNumber(),'1')
+    p.insertPacketInTruck(rp.idNumber(),'1')
 

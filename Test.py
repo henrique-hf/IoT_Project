@@ -1,27 +1,21 @@
-from RegisterPackage import RegisterPackage
 from __future__ import print_function
+from RegisterPackage import RegisterPackage
 from database import Packet
+from thingspeak import Truck
 import requests
 import json
 import datetime
 import paho.mqtt.publish as publish
+import time
 
 
+if __name__ == '__main__':
 
-def testRead():
-    test = RegisterPackage()
-    test.POST()
+    # p  = Packet()
+    # pr = p.findLocation('2147483647')
+    # print('ciao')
 
-    read = test.read()
-    check = test.checkData()
-
-    return read, check
-
-#print testRead()
-a = testRead()
-test = RegisterPackage()
-b = test.read();
-print a
-print b
-print b[0]['id']
+    while True:
+        t = Truck()
+        print(t.retrieveData('1'))
 

@@ -1,5 +1,5 @@
 import pymysql
-
+import requests
 
 class Packet():
     # try:
@@ -55,7 +55,7 @@ class Packet():
             print ('Error in reading database')
 
 
-    def packetInTruck(self,packetid,truckid):
+    def insertPacketInTruck(self,packetid,truckid):
         script = "INSERT INTO `tracking`.`p_t` (`packetid`, `truckid`) VALUES ('" + packetid +"', '" + truckid+ "');"
 
         try:
@@ -70,8 +70,35 @@ class Packet():
         except:
             print ('Error in reading database')
 
+    def findTruckAssociation(self,packet):
+
+        script = 'SELECT truckid FROM p_t' \
+                 ' WHERE packetid = ' + packet
+
+        try:
+            db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            x = cursor.fetchone()
+            truckid = x[0]
+            db.close()
+
+        except:
+            print ('Error in reading database')
+
+        return truckid
+
+    def channelIDretrieve(self, truckID):
+        channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
+        channels_json = json.loads(channels)
+
+        for ch in channels_json["channels"]:
+            if ch.get("name") == str(truckID):
+                return str(ch.get("id"))
 
    # INSERT INTO `tracking`.`packet` (`packetid`, `truckid`, `name`, `address`, `zip`, `city`, `telephone`) VALUES ('', '1', 'Mario Rossi', 'Via Matteotti 1', '10125', 'Torino', '123456789');
+
+
 
 
 # if __name__ == "__main__":

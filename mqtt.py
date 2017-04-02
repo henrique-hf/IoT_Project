@@ -70,7 +70,7 @@ class TruckUpdating:
             print(" temp =", temperature, "  hum =", humidity)
 
         # build the payload string
-            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)+"+lat=5&location=true"
+            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)
 
         # attempt to publish this data to the topic
             try:
