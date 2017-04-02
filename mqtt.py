@@ -4,7 +4,7 @@ import requests
 import json
 import datetime
 import paho.mqtt.publish as publish
-
+import time
 
 class TruckUpdating:
 
@@ -60,9 +60,27 @@ class TruckUpdating:
     #   20 seconds and published that to a ThingSpeak channel
     #   using MQTT.
 
-        temperature = 0
-        humidity = 0
-        while (True):
+        temperature = 30
+        humidity = 10
+
+        gps = '{"data":[' \
+              '{"lat": 35.2960,  "lon": -80.7430},' \
+              '{"lat": 35.2989,  "lon": -80.7372},' \
+              '{"lat": 35.3029,  "lon": -80.7381}, ' \
+              '{"lat": 35.3019,  "lon": -80.7465}, ' \
+              '{"lat": 35.3059,  "lon": -80.7496}, ' \
+              '{"lat": 35.31253, "lon": -80.74303}, ' \
+              '{"lat": 35.30926, "lon": -80.74115}, ' \
+              '{"lat": 35.31171, "lon": -80.73361}, ' \
+              '{"lat": 35.3171,  "lon": -80.7267}]} '
+
+        gps_j = json.loads(gps)
+
+        print (gps_j)
+
+        #while (True):
+
+        for x in gps_j["data"]:
 
         # get the system performance data
             temperature = temperature + 0.5
@@ -70,7 +88,7 @@ class TruckUpdating:
             print(" temp =", temperature, "  hum =", humidity)
 
         # build the payload string
-            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)
+            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)+"&field3=" + str(x["lat"]) + "&field4="+str(x["lon"])
 
         # attempt to publish this data to the topic
             try:
@@ -81,6 +99,8 @@ class TruckUpdating:
 
             except:
                 print("There was an error while publishing the data.")
+
+            time.sleep(10)
 
     def channelIDretrieve(self,truckID):
         channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
