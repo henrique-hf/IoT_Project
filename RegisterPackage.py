@@ -1,6 +1,9 @@
+from __future__ import print_function
+from database import Packet
 import requests
 import json
 import datetime
+import paho.mqtt.publish as publish
 
 class RegisterPackage(object):
 
@@ -9,7 +12,7 @@ class RegisterPackage(object):
 
     def __init__(self):
 
-        self.API_KEY = '7C2YGM6HF9E63AG2'
+        self.API_KEY = 'FB1E9D1G9CQ658U8'
         self.time = datetime.datetime.today()
 
 
@@ -40,12 +43,11 @@ class RegisterPackage(object):
                 print ("Invalid telephone number. Type again.")
                 self.mobile = raw_input("Telephone number: ")
 
-        data = {'Name' : self.name,
-                'Mobile' : self.mobile,
-                'Street' : self.addressStreet,
-                'Ring' : self.addressRing,
-                'Number' : self.addressNumber}
-
+        data = {'name' : self.name,
+                'mobile' : self.mobile,
+                'street' : self.addressStreet,
+                'ring' : self.addressRing,
+                'number' : self.addressNumber}
         return data
 
 
@@ -61,10 +63,10 @@ class RegisterPackage(object):
 
         """Ask the user to check if the data is correct."""
 
-        print "Name: ", self.name
-        print "Telephone number: ", self.mobile
-        print "Address: %s, %s  %s" % (self.addressStreet, self.addressNumber, self.addressRing)
-        print "Check the information. If it is correct type '1' to continue or '0' to cancel"
+        print ("Name: ", self.name)
+        print ("Telephone number: ", self.mobile)
+        print ("Address: %s, %s  %s" % (self.addressStreet, self.addressNumber, self.addressRing))
+        print ("Check the information. If it is correct type '1' to continue or '0' to cancel")
         correct = raw_input("> ")
 
         while True:
@@ -76,37 +78,11 @@ class RegisterPackage(object):
                 print ("Invalid input.")
 
 
-    def POST(self):
-        url = "https://api.thingspeak.com/channels?api_key="
-        requests.post(url)
-        # api_key = XXXXXXXXXXXXXXXX
-        # name = My
-        # New
-        # Channel
-
-    #def PUT(self):
-
-
-    def GET(self):
-
-        """Get the list of channels created before"""
-
-        url = "https://thingspeak.com/channels.json?api_key=7C2YGM6HF9E63AG2"
-
-        a = requests.get(url).content
-
-        return a
-
-
 if __name__ == '__main__':
 
-    #Creating a new channe
-    test = RegisterPackage()
-
-    url = 'https://api.thingspeak.com/channels.json'
-    payload = {"api_key" : test.API_KEY, 'name' : test.idNumber()}
-    r = requests.post(url,data = payload)
-    print r.content
-
-
+    p = Packet()
+    rp = RegisterPackage()
+    data = rp.read()
+    p.insertPacket(rp.idNumber(),data.get('name'),data.get('street'),data.get('ring'),data.get('number'),data.get('mobile'))
+    p.packetInTruck(rp.idNumber(),'1')
 
