@@ -63,24 +63,17 @@ class TruckUpdating:
         temperature = 30
         humidity = 10
 
-        gps = '{"data":[' \
-              '{"lat": 35.2960,  "lon": -80.7430},' \
-              '{"lat": 35.2989,  "lon": -80.7372},' \
-              '{"lat": 35.3029,  "lon": -80.7381}, ' \
-              '{"lat": 35.3019,  "lon": -80.7465}, ' \
-              '{"lat": 35.3059,  "lon": -80.7496}, ' \
-              '{"lat": 35.31253, "lon": -80.74303}, ' \
-              '{"lat": 35.30926, "lon": -80.74115}, ' \
-              '{"lat": 35.31171, "lon": -80.73361}, ' \
-              '{"lat": 35.3171,  "lon": -80.7267}]} '
+        try:
+           json_file =  open('gps.json').read()
+           gps = json.loads(json_file)
 
-        gps_j = json.loads(gps)
+        except:
+            print ('Errore nell\'apertura del file')
 
-        print (gps_j)
 
         #while (True):
 
-        for x in gps_j["data"]:
+        for x in gps["trkpt"]:
 
         # get the system performance data
             temperature = temperature + 0.5
@@ -88,7 +81,7 @@ class TruckUpdating:
             print(" temp =", temperature, "  hum =", humidity)
 
         # build the payload string
-            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)+"&field3=" + str(x["lat"]) + "&field4="+str(x["lon"])
+            tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)+"&field3=" + str(x["-lat"]) + "&field4="+str(x["-lon"])
 
         # attempt to publish this data to the topic
             try:
@@ -100,7 +93,7 @@ class TruckUpdating:
             except:
                 print("There was an error while publishing the data.")
 
-            time.sleep(10)
+            time.sleep(3)
 
     def channelIDretrieve(self,truckID):
         channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
