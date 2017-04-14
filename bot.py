@@ -7,9 +7,9 @@ import cherrypy
 import paho.mqtt.publish as publish
 import time
 import telepot
+import asynchat
 from database import Packet
-
-
+import threading
 
 def retrievePosition():
     pos = json.loads(requests.get('https://api.thingspeak.com/channels/252276/feeds/last').content)
@@ -20,34 +20,32 @@ def retrievePosition():
 
 
 
-def handle():
+def on_message(msg):
+    print ('Son passato')
 
-    msg = bot.getUpdates()
+    #msg = bot.getUpdates()
     lena = len(msg)
     if lena != 0:
-        id = msg[lena - 1]['message']['chat']['id']
+        id = msg['chat']['id']
 
-        if (any(msg[lena-1]['message']['entities'])):
-            if(msg[lena-1]['message']['entities'][0]['type']== 'bot_command'):
-                if msg[lena-1]['message']['text'] == '/getPosition':
-                    try:
-                        po = retrievePosition()
-                        print (po)
-                        pos = json.loads(po)
-                        #bot.sendMessage(id,str(pos['lat']) + " and " + str(pos['long']))
-                        bot.sendLocation(id,pos['lat'],pos['long'])
-                        #print (msg[lena-1]['message']['text'])
-                        return
 
-                    except Exception as detail:
-                        print (detail)
+        try:
+            if (any(msg['entities'])):
+                if(msg['entities'][0]['type']== 'bot_command'):
+                    if msg['text'] == '/getPosition':
+                        try:
+                            po = retrievePosition()
+                            print (po)
+                            pos = json.loads(po)
+                            bot.sendLocation(id,pos['lat'],pos['long'])
+                            return
 
+                        except Exception as detail:
+                            print (detail)
+
+        except:
+            bot.sendMessage(id,'You should send me a /command')
 
 if __name__ == '__main__':
-    bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
-    while True:
-        msg = bot.message_loop(handle())
-        time.sleep(5)
-
-
-
+    bot = telepot.Bot('253148548:AAHW7DkmO0i26DC6F5NuIQCTzzMyn_wcXxM')
+    bot.message_loop({'chat':on_message},run_forever=True)
