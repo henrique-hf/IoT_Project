@@ -19,6 +19,9 @@ def retrievePosition():
     return stringa
 
 
+def internal(msg):
+    return msg['text']
+
 
 def on_message(msg):
     print ('Son passato')
@@ -32,7 +35,23 @@ def on_message(msg):
         try:
             if (any(msg['entities'])):
                 if(msg['entities'][0]['type']== 'bot_command'):
-                    if msg['text'] == '/getPosition':
+
+                    bot.sendMessage(id,'Enter your pack code:')
+
+                    time.sleep(10)
+                    updates = bot.getUpdates()
+
+                    if len(updates) == 0:
+                        bot.sendMessage(id,'Session expired. Please try again')
+                        return
+
+                    else:
+                        bot.sendMessage(id,'Received' + updates)
+
+
+
+
+                    if msg['text'] == '/getposition':
                         try:
                             po = retrievePosition()
                             print (po)
@@ -43,9 +62,20 @@ def on_message(msg):
                         except Exception as detail:
                             print (detail)
 
+                    elif msg['text'] == "/gettemperature":
+                        return
+
+                    elif msg['text'] == "/gethumidity":
+
+                        return
+
+                    elif msg['text'] == "/getall":
+                        return
+
+
         except:
             bot.sendMessage(id,'You should send me a /command')
 
 if __name__ == '__main__':
-    bot = telepot.Bot('253148548:AAHW7DkmO0i26DC6F5NuIQCTzzMyn_wcXxM')
-    bot.message_loop({'chat':on_message},run_forever=True)
+    bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
+    bot.message_loop({'chat':on_message},relax=20,run_forever=True)
