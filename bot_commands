@@ -1,0 +1,4 @@
+getposition - Get the real time position of your delivery
+gettemperature - Get the real time temperature of your delivery
+gethumidity - Get the real time humidity of your delivery
+getall - Get all informations about your delivery
