@@ -1,5 +1,6 @@
 import pymysql
 import requests
+import json
 
 class Packet():
     # try:
@@ -80,13 +81,17 @@ class Packet():
             cursor = db.cursor()
             cursor.execute(script)
             x = cursor.fetchone()
-            truckid = x[0]
             db.close()
+            if x is None:
+                return 0
+            else:
+                truckid = x[0]
+                return truckid
 
         except:
             print ('Error in reading database')
 
-        return truckid
+
 
     def channelIDretrieve(self, truckID):
         channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
@@ -96,13 +101,9 @@ class Packet():
             if ch.get("name") == str(truckID):
                 return str(ch.get("id"))
 
-   # INSERT INTO `tracking`.`packet` (`packetid`, `truckid`, `name`, `address`, `zip`, `city`, `telephone`) VALUES ('', '1', 'Mario Rossi', 'Via Matteotti 1', '10125', 'Torino', '123456789');
-
-
-
 
 # if __name__ == "__main__":
 #     p = Packet()
-#     p.insertPacket(2,1,'a','c',2,'b',3)
+#     p.findTruckAssociation('25')
 #     p.deletePacket(1)
-
+#

@@ -10,6 +10,8 @@ from thingspeak import Truck
 def retrievePosition(id):
     p = Packet()
     truckid = Packet.findTruckAssociation(p,id)
+    if truckid == 0:
+        return None
     channel = Truck.channelIDretrieve(Truck(),truckid)
     url = 'https://api.thingspeak.com/channels/'+str(channel)+'/feeds/last'
     pos = json.loads(requests.get(url).content)
@@ -26,7 +28,6 @@ def internal(msg):
 def on_message(msg):
     print ('Son passato')
 
-    #msg = bot.getUpdates()
     lena = len(msg)
     if lena != 0:
         id = msg['chat']['id']
@@ -36,11 +37,12 @@ def on_message(msg):
 
         except:
             bot.sendMessage(id,'You should send me a command')
+            bot.sendMessage(id,msg['text'])
             return
+
         if(msg['entities'][0]['type']== 'bot_command'):
 
             if msg['text'] == '/getposition':
-
 
                 bot.sendMessage(id,"Enter yuor pack code:")
                 time.sleep(10)
@@ -55,9 +57,13 @@ def on_message(msg):
                     bot.sendMessage("Error in accessing the database")
                     return
 
-                pos = json.loads(po)
-                bot.sendLocation(id, pos['lat'], pos['long'])
-                return
+                if po is not None:
+                    pos = json.loads(po)
+                    bot.sendLocation(id, pos['lat'], pos['long'])
+                    return
+
+                else:
+                    bot.sendMessage(id,'Your packet is not in the system')
 
             elif msg['text'] == "/gettemperature":
                 return
@@ -68,8 +74,11 @@ def on_message(msg):
             elif msg['text'] == "/getall":
                 return
 
+        else:
+            return
+
 
 if __name__ == '__main__':
     bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
-    bot.message_loop({'chat':on_message},relax=20,run_forever=True)
+    bot.message_loop({'chat':on_message},relax=60,run_forever=True)
 
