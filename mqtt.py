@@ -55,6 +55,7 @@ class TruckUpdating:
 
     # Create the topic string
         topic = "channels/" + channelID + "/publish/" + self.apiKey
+        print (topic)
 
     # Run a loop which calculates the system performance every
     #   20 seconds and published that to a ThingSpeak channel
@@ -83,6 +84,7 @@ class TruckUpdating:
         # build the payload string
             tPayload = "field1=" + str(temperature) +"&field2=" + str(humidity)+"&field3=" + str(x["-lat"]) + "&field4="+str(x["-lon"])
 
+            print (tPayload)
         # attempt to publish this data to the topic
             try:
                 publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort, tls=tTLS, transport=tTransport)
@@ -93,7 +95,7 @@ class TruckUpdating:
             except:
                 print("There was an error while publishing the data.")
 
-            time.sleep(3)
+            time.sleep(20)
 
     def channelIDretrieve(self,truckID):
         channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content

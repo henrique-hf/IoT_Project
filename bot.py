@@ -33,17 +33,27 @@ def on_message(msg,chat_id,offset):
 
     if msg['entities'][0]['type'] == 'bot_command':
 
-        if msg['text'] == '/getposition' or msg['text'] == '/getposition@packet_bot':
+        bot.sendMessage(chat_id,"Enter yuor pack code:")
+        time.sleep(10)
+        updates = bot.getUpdates(offset)
+        if len(updates)!=0:
+            trovato = False
+            for message in updates:
+                if message['message']['chat']['id'] == chat_id:
+                    trovato = True
+                    packet = (message['message']['text'])
 
-            bot.sendMessage(chat_id,"Enter yuor pack code:")
-            time.sleep(10)
-            updates = bot.getUpdates(offset)
-            if len(updates)!=0:
-                trovato = False
-                for message in updates:
-                    if message['message']['chat']['id'] == chat_id:
-                        trovato = True
-                        packet = (message['message']['text'])
+                    if msg['text'] == '/getposition' or msg['text'] == '/getposition@packet_bot':
+
+            # bot.sendMessage(chat_id,"Enter yuor pack code:")
+            # time.sleep(10)
+            # updates = bot.getUpdates(offset)
+            # if len(updates)!=0:
+            #     trovato = False
+            #     for message in updates:
+            #         if message['message']['chat']['id'] == chat_id:
+            #             trovato = True
+            #             packet = (message['message']['text'])
                         try:
                             truckid = retreivePacketAssociation(str(packet))
                             if truckid != 0:
@@ -60,46 +70,89 @@ def on_message(msg,chat_id,offset):
                             bot.sendMessage(chat_id,"Error in accessing the database")
                             return
 
-                    if trovato == False:
-                        bot.sendMessage(chat_id,'Timeout expired! Please try again')
 
+                    elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
+                        try:
+                            p = Packet()
+                            truckid = p.findTruckAssociation(packet)
 
-            else:
-                bot.sendMessage(chat_id, 'Timeout expired. Please try again')
-
-        elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
-            bot.sendMessage(chat_id, "Enter yuor pack code:")
-            time.sleep(10)
-            updates = bot.getUpdates()
-
-            if len(updates) != 0:
-                packet = (updates[len(updates) - 1]['message']['text'])
-                try:
-                    p = Packet()
-                    truckid = p.findTruckAssociation(packet)
-
-                    if truckid != 0:
-                        t = Truck()
-                        s = t.retrieveData(truckid)
-                        print (s)
-                    else:
-                        bot.sendMessage(chat_id, 'Your packet is not in the system')
+                            if truckid != 0:
+                                t = Truck()
+                                s = t.retrieveData(truckid)
+                                bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
+                                print (s)
+                            else:
+                                bot.sendMessage(chat_id, 'Your packet is not in the system')
 
 
 
-                except Exception as detail:
-                    bot.sendMessage(chat_id, "Error in accessing the database")
-                    return
+                        except Exception as detail:
+                            bot.sendMessage(chat_id, "Error in accessing the database")
+                            return
 
-            else:
-                bot.sendMessage(chat_id, 'Timeout expired. Please try again')
-                return
+                    elif msg['text'] == "/gethumidity" or msg['text'] == "/gethumidity@packet_bot":
+                        try:
+                            p = Packet()
+                            truckid = p.findTruckAssociation(packet)
 
-        elif msg['text'] == "/gethumidity":
-            return
+                            if truckid != 0:
+                                t = Truck()
+                                s = t.retrieveData(truckid)
+                                bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
+                                print (s)
+                            else:
+                                bot.sendMessage(chat_id, 'Your packet is not in the system')
 
-        elif msg['text'] == "/getall":
-            return
+
+
+                        except Exception as detail:
+                            bot.sendMessage(chat_id, "Error in accessing the database")
+                            return
+
+                    elif msg['text'] == "/getall":
+                        return
+
+                if trovato == False:
+                    bot.sendMessage(chat_id,'Timeout expired! Please try again')
+
+
+
+        else:
+            bot.sendMessage(chat_id, 'Timeout expired. Please try again')
+        #
+        # elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
+        #     bot.sendMessage(chat_id, "Enter yuor pack code:")
+        #     time.sleep(10)
+        #     updates = bot.getUpdates()
+        #
+        #     if len(updates) != 0:
+        #         packet = (updates[len(updates) - 1]['message']['text'])
+        #         try:
+        #             p = Packet()
+        #             truckid = p.findTruckAssociation(packet)
+        #
+        #             if truckid != 0:
+        #                 t = Truck()
+        #                 s = t.retrieveData(truckid)
+        #                 print (s)
+        #             else:
+        #                 bot.sendMessage(chat_id, 'Your packet is not in the system')
+        #
+        #
+        #
+        #         except Exception as detail:
+        #             bot.sendMessage(chat_id, "Error in accessing the database")
+        #             return
+        #
+        #     else:
+        #         bot.sendMessage(chat_id, 'Timeout expired. Please try again')
+        #         return
+        #
+        # elif msg['text'] == "/gethumidity":
+        #     return
+        #
+        # elif msg['text'] == "/getall":
+        #     return
 
 
 
