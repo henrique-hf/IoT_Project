@@ -88,7 +88,7 @@ class TruckUpdating:
                 lon = x['-lon']
                 tPayload = "field1=" + str(temperature) + "&field2=" + str(humidity) + "&field3=" + str(lat) + "&field4=" + str(lon)
                 print (tPayload)
-                publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort,transport=tTransport)
+                publish.single(topic, payload=tPayload, hostname=mqttHost)
                 publish.single()
 
 
