@@ -3,6 +3,7 @@ import requests
 import json
 import datetime
 import paho.mqtt.publish as publish
+import Adafruit_DHT
 import time
 
 
@@ -13,8 +14,7 @@ def getTHSensorData():
     data = {'temp': temperature,
             'hum': humidity}
 
-    datajson = json.loads(data)
-    return datajson
+    return data
 
 
 
@@ -89,7 +89,6 @@ class TruckUpdating:
                 tPayload = "field1=" + str(temperature) + "&field2=" + str(humidity) + "&field3=" + str(lat) + "&field4=" + str(lon)
                 print (tPayload)
                 publish.single(topic, payload=tPayload, hostname=mqttHost)
-                publish.single()
 
 
             except KeyboardInterrupt:
