@@ -3,6 +3,7 @@ import requests
 import json
 import time
 import telepot
+from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 from database import Packet
 from thingspeak import Truck
 
@@ -34,6 +35,7 @@ def on_message(msg,chat_id,offset):
     if msg['entities'][0]['type'] == 'bot_command':
 
         bot.sendMessage(chat_id,"Enter yuor pack code:")
+
         time.sleep(10)
         updates = bot.getUpdates(offset)
         if len(updates)!=0:
@@ -45,15 +47,6 @@ def on_message(msg,chat_id,offset):
 
                     if msg['text'] == '/getposition' or msg['text'] == '/getposition@packet_bot':
 
-            # bot.sendMessage(chat_id,"Enter yuor pack code:")
-            # time.sleep(10)
-            # updates = bot.getUpdates(offset)
-            # if len(updates)!=0:
-            #     trovato = False
-            #     for message in updates:
-            #         if message['message']['chat']['id'] == chat_id:
-            #             trovato = True
-            #             packet = (message['message']['text'])
                         try:
                             truckid = retreivePacketAssociation(str(packet))
                             if truckid != 0:
@@ -103,13 +96,32 @@ def on_message(msg,chat_id,offset):
                             else:
                                 bot.sendMessage(chat_id, 'Your packet is not in the system')
 
+                        except Exception as detail:
+                            bot.sendMessage(chat_id, "Error in accessing the database")
+                            return
+
+
+                    elif msg['text'] == '/getall' or msg['text'] == '/getall@packet_bot':
+                        try:
+                            p = Packet()
+                            truckid = p.findTruckAssociation(packet)
+
+                            if truckid!=0:
+                                t = Truck()
+                                po = retrievePosition(str(truckid))
+                                pos = json.loads(po)
+                                bot.sendLocation(chat_id, pos['lat'], pos['long'])
+                                s = t.retrieveData(truckid)
+                                bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
+
 
 
                         except Exception as detail:
                             bot.sendMessage(chat_id, "Error in accessing the database")
                             return
 
-                    elif msg['text'] == "/getall":
+                    else:
+                        bot.sendMessage(chat_id,'Command not found!')
                         return
 
                 if trovato == False:
@@ -119,42 +131,6 @@ def on_message(msg,chat_id,offset):
 
         else:
             bot.sendMessage(chat_id, 'Timeout expired. Please try again')
-        #
-        # elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
-        #     bot.sendMessage(chat_id, "Enter yuor pack code:")
-        #     time.sleep(10)
-        #     updates = bot.getUpdates()
-        #
-        #     if len(updates) != 0:
-        #         packet = (updates[len(updates) - 1]['message']['text'])
-        #         try:
-        #             p = Packet()
-        #             truckid = p.findTruckAssociation(packet)
-        #
-        #             if truckid != 0:
-        #                 t = Truck()
-        #                 s = t.retrieveData(truckid)
-        #                 print (s)
-        #             else:
-        #                 bot.sendMessage(chat_id, 'Your packet is not in the system')
-        #
-        #
-        #
-        #         except Exception as detail:
-        #             bot.sendMessage(chat_id, "Error in accessing the database")
-        #             return
-        #
-        #     else:
-        #         bot.sendMessage(chat_id, 'Timeout expired. Please try again')
-        #         return
-        #
-        # elif msg['text'] == "/gethumidity":
-        #     return
-        #
-        # elif msg['text'] == "/getall":
-        #     return
-
-
 
     else:
         return
@@ -170,6 +146,8 @@ if __name__ == '__main__':
             chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
             on_message(msg[0]['message'],chat_id,offset)
             print (offset)
+
+
 
 
     #bot.message_loop({'chat':on_message},relax=30,run_forever=True)
