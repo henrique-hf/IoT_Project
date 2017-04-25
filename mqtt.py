@@ -1,5 +1,4 @@
 from __future__ import print_function
-from database import Packet
 import requests
 import json
 import datetime
