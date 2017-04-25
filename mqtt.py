@@ -7,6 +7,18 @@ import paho.mqtt.publish as publish
 import time
 
 
+
+def getTHSensorData():
+    humidity, temperature = Adafruit_DHT.read_retry(11, 2)  # 11 stands for DHT11 and 2 for pin to read
+
+    data = {'temp': temperature,
+            'hum': humidity}
+
+    datajson = json.loads(data)
+    return datajson
+
+
+
 def channelIDretrieve(truckID):
     channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
     channels_json = json.loads(channels)
@@ -64,8 +76,9 @@ class TruckUpdating:
 
         for x in gps["trkpt"]:
 
-            temperature = temperature + 0.5
-            humidity = humidity + 0.35
+            data = getTHSensorData()
+            temperature = data['temp']
+            humidity = data['hum']
             print(" temp =", temperature, "  hum =", humidity)
 
         # attempt to publish this data to the topic
@@ -77,6 +90,7 @@ class TruckUpdating:
                 tPayload = "field1=" + str(temperature) + "&field2=" + str(humidity) + "&field3=" + str(lat) + "&field4=" + str(lon)
                 print (tPayload)
                 publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort,transport=tTransport)
+                publish.single()
 
 
             except KeyboardInterrupt:
@@ -92,7 +106,7 @@ class TruckUpdating:
 if __name__ == '__main__':
     user_api = '7C2YGM6HF9E63AG2'
 
-    idchannel = channelIDretrieve(2)
+    idchannel = channelIDretrieve(1)
     api_write = channelAPIretrieve(idchannel, user_api)
     t = TruckUpdating(api_write,idchannel)
     t.mqttConnection()
