@@ -7,18 +7,13 @@ import json
 import datetime
 import paho.mqtt.publish as publish
 import time
-
-
+import thingspeak
+import mqtt
 if __name__ == '__main__':
 
-
-    p = Packet()
-    #p.insertPacketInTruck('111328042017','1')
-    t = p.findTruckAssociation('111328042017')
-    print (t)
-    tr = Truck()
-    x = tr.retrieveData(t)
-
-    print (x)
-
+    user_api = '7C2YGM6HF9E63AG2'
+    idchannel = mqtt.channelIDretrieve('1')
+    api_write = mqtt.channelAPIretrieve(idchannel, user_api)
+    t = mqtt.TruckUpdating(api_write, idchannel)
+    t.mqttConnection()
 

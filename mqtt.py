@@ -23,7 +23,7 @@ def channelIDretrieve(truckID):
     channels_json = json.loads(channels)
 
     for ch in channels_json["channels"]:
-        if ch.get("name") == str(truckID):
+        if ch.get("name") == truckID:
             return str(ch.get("id"))
 
 
@@ -79,6 +79,8 @@ class TruckUpdating:
             data = getTHSensorData()
             temperature = data['temp']
             humidity = data['hum']
+            #temperature = 22
+            #humidity = 33
             print(" temp =", temperature, "  hum =", humidity)
 
         # attempt to publish this data to the topic
@@ -96,9 +98,15 @@ class TruckUpdating:
                 break
 
             except Exception as e:
-                print("There was an error while publishing the data.",e)
+                print("There was an error while publishing the data.\n",e)
 
-            time.sleep(10)
+            time.sleep(5)
 
 
 
+if __name__ == '__main__':
+    user_api = '7C2YGM6HF9E63AG2'
+    idchannel = channelIDretrieve('1')
+    api_write = channelAPIretrieve(idchannel, user_api)
+    t = TruckUpdating(api_write,idchannel)
+    t.mqttConnection()
