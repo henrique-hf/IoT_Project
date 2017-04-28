@@ -58,7 +58,7 @@ class TruckUpdating:
 
 
     # Create the topic string
-        topic = "channels/" + self.channelID + "/publish/" + self.apiKey
+        topic = 'channels/%s/' % self.channelID + 'publish/%s' % self.apiKey
         print (topic)
         temperature = 30
         humidity = 10
