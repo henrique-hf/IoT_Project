@@ -28,7 +28,8 @@ def channelIDretrieve(truckID):
 
 
 def channelAPIretrieve(channelID, api_key):
-    url = 'https://api.thingspeak.com/channels/' + channelID + '?api_key=' + api_key
+
+    url = 'https://api.thingspeak.com/channels/%s' % channelID + '?api_key=%s' % api_key
     print(url)
     x = requests.put(url).content
     xj = json.loads(x)
