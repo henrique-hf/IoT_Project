@@ -11,11 +11,14 @@ import time
 
 if __name__ == '__main__':
 
-    # p  = Packet()
-    # pr = p.findLocation('2147483647')
-    # print('ciao')
 
-    while True:
-        t = Truck()
-        print(t.retrieveData('1'))
+    p = Packet()
+    #p.insertPacketInTruck('111328042017','1')
+    t = p.findTruckAssociation('111328042017')
+    print (t)
+    tr = Truck()
+    x = tr.retrieveData(t)
+
+    print (x)
+
 

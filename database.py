@@ -1,6 +1,6 @@
-import pymysql
 import requests
 import json
+import pymysql
 
 class Packet():
     # try:
@@ -13,32 +13,33 @@ class Packet():
     # except:
     #     print ('Error in reading database')
 
-    def insertPacket(self,packet,name,address,zip,city,telephone):
+    def insertPacket(self,packet,name,address,n_address,zip,city,telephone,lat,lon):
 
-        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`, `zip`, `city`, `telephone`) VALUES ("
+        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
         script += "'" + str(packet) + "',"
-        #script += "'" + str(truck) + "',"
         script += "'" + name + "',"
         script += "'" + address + "',"
+        script += "'" + str(n_address) + "',"
         script += "'" + str(zip) + "',"
         script += "'" + city + "',"
-        script += "'" + str(telephone) + "')"
+        script += "'" + str(telephone) + "',"
+        script += "'" + str(lat) + "',"
+        script += "'" + str(lon) + "')"
 
-        print script
 
         try:
             db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
             cursor = db.cursor()
-            cursor.execute("SELECT * FROM `tracking`.`packet`")
-            print cursor.fetchall()
+            #cursor.execute("SELECT * FROM `tracking`.`packet`")
+            #print (cursor.fetchall())
             cursor.execute(script)
             db.commit()
-            cursor.execute("SELECT * FROM `tracking`.`packet`")
-            print cursor.fetchall()
+            # cursor.execute("SELECT * FROM `tracking`.`packet`")
+            # print (cursor.fetchall())
             db.close()
 
-        except:
-            print ('Error in reading database')
+        except Exception as e:
+            print ('Error in reading database',e)
 
 
     def deletePacket(self,packetid):
@@ -49,7 +50,6 @@ class Packet():
             cursor.execute(script)
             db.commit()
             cursor.execute("SELECT * FROM `tracking`.`packet`")
-            print cursor.fetchall()
             db.close()
 
         except:
@@ -65,7 +65,6 @@ class Packet():
             cursor.execute(script)
             db.commit()
             cursor.execute("SELECT * FROM `tracking`.`p_t`")
-            print cursor.fetchall()
             db.close()
 
         except:
