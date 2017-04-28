@@ -38,7 +38,7 @@ def channelAPIretrieve(channelID, api_key):
             print(i['api_key'])
             return i['api_key']
 
-    print('s')
+
 
 
 class TruckUpdating:
