@@ -2,3 +2,8 @@ getposition - Get the real time position of your delivery
 gettemperature - Get the real time temperature of your delivery
 gethumidity - Get the real time humidity of your delivery
 getall - Get all informations about your delivery
+setpacket - Set a packet as the default to track
+getpacket - Get the id of the packet set as default
+changepacket - Change the default packet to track
+deletepacket - Remove the default packet
+

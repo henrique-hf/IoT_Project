@@ -42,6 +42,23 @@ class Packet():
             print ('Error in reading database',e)
 
 
+    def findPacket(self,packetid):
+        script = 'SELECT `packetid` FROM `tracking`.`packet` WHERE `packetid`=\'' + str(packetid) + '\';'
+        print (script)
+        try:
+            db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            x = cursor.fetchone()
+            db.close()
+            if x is None:
+                return 0
+            else:
+                return 1
+
+        except:
+            print ('Error in reading database')
+
     def deletePacket(self,packetid):
         script = "DELETE FROM `tracking`.`packet` WHERE `packetid`='" + str(packetid) + "';"
         try:
