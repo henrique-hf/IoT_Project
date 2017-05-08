@@ -37,7 +37,7 @@ CREATE TABLE `p_t` (
 
 LOCK TABLES `p_t` WRITE;
 /*!40000 ALTER TABLE `p_t` DISABLE KEYS */;
-INSERT INTO `p_t` VALUES ('171602042017','1');
+INSERT INTO `p_t` VALUES ('001925042017','1'),('031925042017','1'),('041328042017','1'),('111328042017','1'),('171602042017','1'),('361825042017','1'),('451825042017','1'),('461825042017','1');
 /*!40000 ALTER TABLE `p_t` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -50,12 +50,14 @@ DROP TABLE IF EXISTS `packet`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `packet` (
   `packetid` varchar(45) NOT NULL,
-  `name` varchar(45) DEFAULT NULL,
-  `address` varchar(45) DEFAULT NULL,
-  `zip` varchar(45) DEFAULT NULL,
-  `city` varchar(45) DEFAULT NULL,
-  `telephone` varchar(45) DEFAULT NULL,
-  `n_address` varchar(45) DEFAULT NULL,
+  `name` varchar(45) NOT NULL,
+  `address` varchar(45) NOT NULL,
+  `zip` varchar(45) NOT NULL,
+  `city` varchar(45) NOT NULL,
+  `telephone` varchar(45) NOT NULL,
+  `n_address` varchar(45) NOT NULL,
+  `lat` varchar(45) NOT NULL,
+  `long` varchar(45) NOT NULL,
   PRIMARY KEY (`packetid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -66,7 +68,7 @@ CREATE TABLE `packet` (
 
 LOCK TABLES `packet` WRITE;
 /*!40000 ALTER TABLE `packet` DISABLE KEYS */;
-INSERT INTO `packet` VALUES ('051602042017','Matteo Nisi','Corso Vittorio Emanuele II','10121','Torino','','62'),('151602042017','Henrique da Fonseca','Corso Re Umberto','10128','Torino','','23'),('161602042017','Carla Trejo','Corso Stati Uniti','10128','Torino','','32'),('171602042017','Stefano Calleris','Corso Duca degli Abruzzi','10129','Torino','','24');
+INSERT INTO `packet` VALUES ('031925042017','MATTEO','VIA MOMBARCARO','10136','Torino','3','14','45.0478106','7.6457008'),('041328042017','MARIO','VIA MOMBASIGLIO ','','2','234','','',''),('051602042017','Matteo Nisi','Corso Vittorio Emanuele II','10121','Torino','','62','',''),('111328042017','MARIO','VIA MOMBASIGLIO ','10136','Torino','123','2','45.047797','7.6472562'),('151602042017','Henrique da Fonseca','Corso Re Umberto','10128','Torino','','23','',''),('152008052017','Giuseppe Garibaldi','Via Nizza','10100','Torino','1000','4','45.0190839','7.6627022'),('161602042017','Carla Trejo','Corso Stati Uniti','10128','Torino','','32','',''),('171602042017','Stefano Calleris','Corso Duca degli Abruzzi','10129','Torino','','24','','');
 /*!40000 ALTER TABLE `packet` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -79,4 +81,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-04-25 17:58:01
+-- Dump completed on 2017-05-08 20:16:57
