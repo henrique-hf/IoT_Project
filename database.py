@@ -1,8 +1,11 @@
 import requests
 import json
+import datetime
 import pymysql
+import cherrypy
 
-class Packet():
+class Packet(object):
+    exposed = True
     # try:
     #     db = pymysql.connect(host="127.0.0.1",user="root", passwd="",db="tracking")
     #     cursor = db.cursor()
@@ -13,18 +16,39 @@ class Packet():
     # except:
     #     print ('Error in reading database')
 
-    def insertPacket(self,packet,name,address,n_address,zip,city,telephone,lat,lon):
+    def GET(self, *uri,**params):
 
-        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
-        script += "'" + str(packet) + "',"
+        complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
+        geometry = json.loads(
+            requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
+
+        lat = geometry['results'][0]['geometry']['location']['lat']
+        long = geometry['results'][0]['geometry']['location']['lng']
+
+
+        self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'])#,lat,long)
+
+    def idNumber(self):
+        time = datetime.datetime.today()
+        """Generate a number based on timestamp that will be used as the channel
+        name of that package"""
+
+        return "%02d%02d%02d%02d%04d" % (
+        time.minute, time.hour, time.day, time.month, time.year)
+
+    def insertPacket(self,packet,name,address,n_address,zip,city,telephone):#,lat,lon):
+        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`) VALUES ("
+        # script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
+        script += "\'" + str(packet) + "\',"
         script += "'" + name + "',"
         script += "'" + address + "',"
         script += "'" + str(n_address) + "',"
         script += "'" + str(zip) + "',"
         script += "'" + city + "',"
-        script += "'" + str(telephone) + "',"
-        script += "'" + str(lat) + "',"
-        script += "'" + str(lon) + "')"
+        script += "'" + str(telephone) + "')"
+        print (script)
+       # script += "'" + str(lat) + "',"
+       # script += "'" + str(lon) + "')"
 
 
         try:
@@ -118,8 +142,22 @@ class Packet():
                 return str(ch.get("id"))
 
 
-# if __name__ == "__main__":
-#     p = Packet()
-#     p.findTruckAssociation('25')
-#     p.deletePacket(1)
-#
+
+
+if __name__ == "__main__":
+
+
+
+        conf = {
+            "/": {
+                "request.dispatch": cherrypy.dispatch.MethodDispatcher(),
+                "tools.sessions.on": True,
+                }
+            }
+        cherrypy.tree.mount (Packet(), "/", conf)
+        cherrypy.config.update({
+            "server.socket_host": 'localhost',
+            "server.socket_port": 8089})
+
+        cherrypy.engine.start()
+        cherrypy.engine.block()
