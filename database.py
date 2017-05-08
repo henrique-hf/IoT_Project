@@ -9,15 +9,38 @@ class Packet(object):
 
     def GET(self, *uri,**params):
 
-        complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
-        geometry = json.loads(
-            requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
+        if uri[0] == 'create':
+            complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
+            geometry = json.loads(
+                requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
 
-        lat = geometry['results'][0]['geometry']['location']['lat']
-        long = geometry['results'][0]['geometry']['location']['lng']
+            lat = geometry['results'][0]['geometry']['location']['lat']
+            long = geometry['results'][0]['geometry']['location']['lng']
 
 
-        self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'],lat,long)
+            self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'],lat,long)
+
+            return json.dumps(params) + ' INSERTED'
+
+        if uri[0] == 'associate':
+            if self.findPacket(params['packet']):
+                try:
+                    self.insertPacketInTruck(params['packet'],params['truck'])
+                    return 'Packet ' + params['packet'] + ' inserted in truck ' + params['truck']
+                except:
+                    return 'Error in inserting the packet'
+            else:
+                return 'Packet not present in the system'
+
+        if uri[0] == 'delivered':
+            if self.findPacket(params['packet']):
+                try:
+                    self.packetDelivered(params['packet'],params['truck'])
+                    return 'Packet ' + params['packet'] + ' delivered ' + params['truck']
+                except:
+                    return 'Error in inserting the packet'
+            else:
+                return 'Packet not present in the system'
 
     def idNumber(self):
         time = datetime.datetime.today()
@@ -72,6 +95,23 @@ class Packet(object):
         except:
             print ('Error in reading database')
 
+    # def findTruck(self, packetid):
+    #     script = 'SELECT `packetid` FROM `tracking`.`truck` WHERE `packetid`=\'' + str(packetid) + '\';'
+    #     print (script)
+    #     try:
+    #         db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+    #         cursor = db.cursor()
+    #         cursor.execute(script)
+    #         x = cursor.fetchone()
+    #         db.close()
+    #         if x is None:
+    #             return 0
+    #         else:
+    #             return 1
+    #
+    #     except:
+    #         print ('Error in reading database')
+
     def deletePacket(self,packetid):
         script = "DELETE FROM `tracking`.`packet` WHERE `packetid`='" + str(packetid) + "';"
         try:
@@ -120,6 +160,19 @@ class Packet(object):
         except:
             print ('Error in reading database')
 
+
+    def packetDelivered(self,packet,truck):
+        script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='"+ packet + "' and`truckid`='"+truck+"';"
+        try:
+            db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            db.commit()
+            cursor.execute("SELECT * FROM `tracking`.`p_t`")
+            db.close()
+
+        except:
+            print ('Error in reading database')
 
 
     def channelIDretrieve(self, truckID):
