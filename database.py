@@ -6,15 +6,6 @@ import cherrypy
 
 class Packet(object):
     exposed = True
-    # try:
-    #     db = pymysql.connect(host="127.0.0.1",user="root", passwd="",db="tracking")
-    #     cursor = db.cursor()
-    #     cursor.execute("SHOW DATABASES")
-    #     a = cursor.execute("SELECT * FROM tracking.truck")
-    #
-    #     print (cursor.fetchone())
-    # except:
-    #     print ('Error in reading database')
 
     def GET(self, *uri,**params):
 
@@ -33,8 +24,8 @@ class Packet(object):
         """Generate a number based on timestamp that will be used as the channel
         name of that package"""
 
-        return "%02d%02d%02d%02d%04d" % (
-        time.minute, time.hour, time.day, time.month, time.year)
+        return "%04d%02d%02d%02d%02d%02d" % (
+        time.year,time.month, time.day, time.hour, time.minute, time.second)
 
     def insertPacket(self,packet,name,address,n_address,zip,city,telephone,lat,lon):
         script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
@@ -52,12 +43,12 @@ class Packet(object):
         try:
             db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
             cursor = db.cursor()
-            #cursor.execute("SELECT * FROM `tracking`.`packet`")
-            #print (cursor.fetchall())
             cursor.execute(script)
             db.commit()
-            # cursor.execute("SELECT * FROM `tracking`.`packet`")
-            # print (cursor.fetchall())
+            print_script = 'SELECT * FROM tracking.packet as tp ORDER BY tp.packetid desc'
+            cursor.execute(print_script)
+            for row in cursor.fetchall():
+                print (row)
             db.close()
 
         except Exception as e:
