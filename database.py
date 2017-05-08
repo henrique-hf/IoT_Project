@@ -26,7 +26,7 @@ class Packet(object):
         long = geometry['results'][0]['geometry']['location']['lng']
 
 
-        self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'])#,lat,long)
+        self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'],lat,long)
 
     def idNumber(self):
         time = datetime.datetime.today()
@@ -36,19 +36,17 @@ class Packet(object):
         return "%02d%02d%02d%02d%04d" % (
         time.minute, time.hour, time.day, time.month, time.year)
 
-    def insertPacket(self,packet,name,address,n_address,zip,city,telephone):#,lat,lon):
-        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`) VALUES ("
-        # script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
+    def insertPacket(self,packet,name,address,n_address,zip,city,telephone,lat,lon):
+        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
         script += "\'" + str(packet) + "\',"
         script += "'" + name + "',"
         script += "'" + address + "',"
         script += "'" + str(n_address) + "',"
         script += "'" + str(zip) + "',"
         script += "'" + city + "',"
-        script += "'" + str(telephone) + "')"
-        print (script)
-       # script += "'" + str(lat) + "',"
-       # script += "'" + str(lon) + "')"
+        script += "'" + str(telephone) + "',"
+        script += "'" + str(lat) + "',"
+        script += "'" + str(lon) + "')"
 
 
         try:
