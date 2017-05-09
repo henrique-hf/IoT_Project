@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body background=http://wallpapercave.com/wp/IsfyoJx.jpg>
+
+
+<form method="get" action="http://localhost:8089">
+    <center>
+        <h1>Delivery Form</h1>
+        <p> Please fill in the form</p>
+        <strong>Name</strong><br>
+        <input type="text" name="name"><br>
+        <strong>Address</strong><br>
+        <input type="text" name="address"><br>
+        <strong>Nr.</strong><br>
+        <input type="text" name="nr"><br>
+        <strong>City</strong><br>
+        <input type="text" name="city"><br>
+        <strong>Zip code</strong><br>
+        <textarea name="zip"></textarea><br>
+        <strong>Telephone</strong><br>
+        <textarea name="telephone"></textarea><br>
+        <input type="submit" value="Commit and Push">
+    </center>
+</form>
+</body>
+</html>
