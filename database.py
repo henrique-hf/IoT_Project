@@ -9,6 +9,13 @@ class Packet(object):
 
     def GET(self, *uri,**params):
 
+        if uri[0] == 'findPacket':
+            if self.findPacket(params['packetid']):
+                print params['packetid']
+
+            else:
+                print 'The id inserted is not valid!'
+
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
             geometry = json.loads(
