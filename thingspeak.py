@@ -1,6 +1,5 @@
 import requests
 import json
-from database import Packet
 
 
 class Truck():
