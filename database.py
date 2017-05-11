@@ -6,60 +6,79 @@ import cherrypy
 
 class Packet(object):
     exposed = True
-    # try:
-    #     db = pymysql.connect(host="127.0.0.1",user="root", passwd="",db="tracking")
-    #     cursor = db.cursor()
-    #     cursor.execute("SHOW DATABASES")
-    #     a = cursor.execute("SELECT * FROM tracking.truck")
-    #
-    #     print (cursor.fetchone())
-    # except:
-    #     print ('Error in reading database')
 
     def GET(self, *uri,**params):
 
-        complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
-        geometry = json.loads(
-            requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
+        if uri[0] == 'findPacket':
+            if self.findPacket(params['packetid']):
+                print params['packetid']
 
-        lat = geometry['results'][0]['geometry']['location']['lat']
-        long = geometry['results'][0]['geometry']['location']['lng']
+            else:
+                print 'The id inserted is not valid!'
+
+        if uri[0] == 'create':
+            complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
+            geometry = json.loads(
+                requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
+
+            lat = geometry['results'][0]['geometry']['location']['lat']
+            long = geometry['results'][0]['geometry']['location']['lng']
 
 
-        self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'])#,lat,long)
+            self.insertPacket(self.idNumber(),params['name'],params['address'],params['nr'],params['zip'],params['city'],params['telephone'],lat,long)
+
+            return json.dumps(params) + ' INSERTED'
+
+        if uri[0] == 'associate':
+            if self.findPacket(params['packet']):
+                try:
+                    self.insertPacketInTruck(params['packet'],params['truck'])
+                    return 'Packet ' + params['packet'] + ' inserted in truck ' + params['truck']
+                except:
+                    return 'Error in inserting the packet'
+            else:
+                return 'Packet not present in the system'
+
+        if uri[0] == 'delivered':
+            if self.findPacket(params['packet']):
+                try:
+                    self.packetDelivered(params['packet'],params['truck'])
+                    return 'Packet ' + params['packet'] + ' delivered ' + params['truck']
+                except:
+                    return 'Error in inserting the packet'
+            else:
+                return 'Packet not present in the system'
 
     def idNumber(self):
         time = datetime.datetime.today()
         """Generate a number based on timestamp that will be used as the channel
         name of that package"""
 
-        return "%02d%02d%02d%02d%04d" % (
-        time.minute, time.hour, time.day, time.month, time.year)
+        return "%04d%02d%02d%02d%02d%02d" % (
+        time.year,time.month, time.day, time.hour, time.minute, time.second)
 
-    def insertPacket(self,packet,name,address,n_address,zip,city,telephone):#,lat,lon):
-        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`) VALUES ("
-        # script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
+    def insertPacket(self,packet,name,address,n_address,zip,city,telephone,lat,lon):
+        script = "INSERT INTO `tracking`.`packet` (`packetid`, `name`, `address`,`n_address`, `zip`, `city`, `telephone`,`lat`,`long`) VALUES ("
         script += "\'" + str(packet) + "\',"
         script += "'" + name + "',"
         script += "'" + address + "',"
         script += "'" + str(n_address) + "',"
         script += "'" + str(zip) + "',"
         script += "'" + city + "',"
-        script += "'" + str(telephone) + "')"
-        print (script)
-       # script += "'" + str(lat) + "',"
-       # script += "'" + str(lon) + "')"
+        script += "'" + str(telephone) + "',"
+        script += "'" + str(lat) + "',"
+        script += "'" + str(lon) + "')"
 
 
         try:
             db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
             cursor = db.cursor()
-            #cursor.execute("SELECT * FROM `tracking`.`packet`")
-            #print (cursor.fetchall())
             cursor.execute(script)
             db.commit()
-            # cursor.execute("SELECT * FROM `tracking`.`packet`")
-            # print (cursor.fetchall())
+            print_script = 'SELECT * FROM tracking.packet as tp ORDER BY tp.packetid desc'
+            cursor.execute(print_script)
+            for row in cursor.fetchall():
+                print (row)
             db.close()
 
         except Exception as e:
@@ -82,6 +101,23 @@ class Packet(object):
 
         except:
             print ('Error in reading database')
+
+    # def findTruck(self, packetid):
+    #     script = 'SELECT `packetid` FROM `tracking`.`truck` WHERE `packetid`=\'' + str(packetid) + '\';'
+    #     print (script)
+    #     try:
+    #         db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+    #         cursor = db.cursor()
+    #         cursor.execute(script)
+    #         x = cursor.fetchone()
+    #         db.close()
+    #         if x is None:
+    #             return 0
+    #         else:
+    #             return 1
+    #
+    #     except:
+    #         print ('Error in reading database')
 
     def deletePacket(self,packetid):
         script = "DELETE FROM `tracking`.`packet` WHERE `packetid`='" + str(packetid) + "';"
@@ -131,6 +167,19 @@ class Packet(object):
         except:
             print ('Error in reading database')
 
+
+    def packetDelivered(self,packet,truck):
+        script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='"+ packet + "' and`truckid`='"+truck+"';"
+        try:
+            db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            db.commit()
+            cursor.execute("SELECT * FROM `tracking`.`p_t`")
+            db.close()
+
+        except:
+            print ('Error in reading database')
 
 
     def channelIDretrieve(self, truckID):
