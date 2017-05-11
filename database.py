@@ -3,6 +3,7 @@ import json
 import datetime
 import pymysql
 import cherrypy
+from thingspeak import Truck
 
 class Packet(object):
     exposed = True
@@ -11,11 +12,11 @@ class Packet(object):
 
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
-                print params['packetid']
+                print (params['packetid'])
                 truckid = self.findTruckAssociation(params['packetid'])
                 position = self.retrievePosition(truckid)
 
-                requests.post
+                requests.post('localhost:8091/post',position)
 
 
             else:
@@ -107,22 +108,6 @@ class Packet(object):
         except:
             print ('Error in reading database')
 
-    # def findTruck(self, packetid):
-    #     script = 'SELECT `packetid` FROM `tracking`.`truck` WHERE `packetid`=\'' + str(packetid) + '\';'
-    #     print (script)
-    #     try:
-    #         db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
-    #         cursor = db.cursor()
-    #         cursor.execute(script)
-    #         x = cursor.fetchone()
-    #         db.close()
-    #         if x is None:
-    #             return 0
-    #         else:
-    #             return 1
-    #
-    #     except:
-    #         print ('Error in reading database')
 
     def deletePacket(self,packetid):
         script = "DELETE FROM `tracking`.`packet` WHERE `packetid`='" + str(packetid) + "';"
@@ -195,12 +180,11 @@ class Packet(object):
             if ch.get("name") == str(truckID):
                 return str(ch.get("id"))
 
-    def retreivePacketAssociation(id):
-        p = Packet()
-        truckid = Packet.findTruckAssociation(p, id)
+    def retreivePacketAssociation(self,packetid):
+        truckid = self.findTruckAssociation(packetid)
         return truckid
 
-    def retrievePosition(truckid):
+    def retrievePosition(self,truckid):
         channel = Truck.channelIDretrieve(Truck(), truckid)
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
         pos = json.loads(requests.get(url).content)
