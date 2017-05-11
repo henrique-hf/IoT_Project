@@ -12,6 +12,11 @@ class Packet(object):
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
                 print params['packetid']
+                truckid = self.findTruckAssociation(params['packetid'])
+                position = self.retrievePosition(truckid)
+
+                requests.post
+
 
             else:
                 print 'The id inserted is not valid!'
@@ -30,20 +35,20 @@ class Packet(object):
             return json.dumps(params) + ' INSERTED'
 
         if uri[0] == 'associate':
-            if self.findPacket(params['packet']):
+            if self.findPacket(params['packetid']):
                 try:
-                    self.insertPacketInTruck(params['packet'],params['truck'])
-                    return 'Packet ' + params['packet'] + ' inserted in truck ' + params['truck']
+                    self.insertPacketInTruck(params['packetid'],params['truckid'])
+                    return 'Packet ' + params['packetid'] + ' inserted in truck ' + params['truckid']
                 except:
                     return 'Error in inserting the packet'
             else:
                 return 'Packet not present in the system'
 
         if uri[0] == 'delivered':
-            if self.findPacket(params['packet']):
+            if self.findPacket(params['packetid']):
                 try:
-                    self.packetDelivered(params['packet'],params['truck'])
-                    return 'Packet ' + params['packet'] + ' delivered ' + params['truck']
+                    self.packetDelivered(params['packetid'],params['truckid'])
+                    return 'Packet ' + params['packetid'] + ' delivered ' + params['truckid']
                 except:
                     return 'Error in inserting the packet'
             else:
@@ -189,6 +194,18 @@ class Packet(object):
         for ch in channels_json["channels"]:
             if ch.get("name") == str(truckID):
                 return str(ch.get("id"))
+
+    def retreivePacketAssociation(id):
+        p = Packet()
+        truckid = Packet.findTruckAssociation(p, id)
+        return truckid
+
+    def retrievePosition(truckid):
+        channel = Truck.channelIDretrieve(Truck(), truckid)
+        url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
+        pos = json.loads(requests.get(url).content)
+        stringa = '{"lat" :' + str(pos['field3']) + ',"long": ' + str(pos['field4']) + '}'
+        return stringa
 
 
 
