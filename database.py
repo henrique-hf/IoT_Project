@@ -3,6 +3,7 @@ import json
 import datetime
 import pymysql
 import cherrypy
+import requests
 
 class Packet(object):
     exposed = True
@@ -15,7 +16,7 @@ class Packet(object):
                 truckid = self.findTruckAssociation(params['packetid'])
                 position = self.retrievePosition(truckid)
 
-                requests.post
+                requests.put()
 
 
             else:
