@@ -5,6 +5,8 @@ import pymysql
 import cherrypy
 from thingspeak import Truck
 import requests
+import webbrowser
+
 
 class Packet(object):
     exposed = True
@@ -15,9 +17,10 @@ class Packet(object):
             if self.findPacket(params['packetid']):
                 print (params['packetid'])
                 truckid = self.findTruckAssociation(params['packetid'])
+                channel = self.channelIDretrieve(truckid)
                 position = self.retrievePosition(truckid)
-
-                requests.post('localhost:8091/post',position)
+                webbrowser.open_new_tab('http://localhost/maps.php/?lat='+str(position['lat'])+'&long='+str(position['long'])+'&channel='+channel)
+                #print ('http://localhost/maps.php/?lat='+str(position['lat'])+'&long='+str(position['long']))
 
 
             else:
@@ -190,7 +193,8 @@ class Packet(object):
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
         pos = json.loads(requests.get(url).content)
         stringa = '{"lat" :' + str(pos['field3']) + ',"long": ' + str(pos['field4']) + '}'
-        return stringa
+        d = json.loads(stringa)
+        return d
 
 
 
@@ -208,7 +212,7 @@ if __name__ == "__main__":
         cherrypy.tree.mount (Packet(), "/", conf)
         cherrypy.config.update({
             "server.socket_host": 'localhost',
-            "server.socket_port": 8089})
+            "server.socket_port": 8082})
 
         cherrypy.engine.start()
         cherrypy.engine.block()
