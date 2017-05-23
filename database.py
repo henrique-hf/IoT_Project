@@ -26,6 +26,10 @@ class Packet(object):
             else:
                 print 'The id inserted is not valid!'
 
+
+        if uri[0] == 'booleanPacket':
+            return str(self.findPacket(params['packetid']))
+
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
             geometry = json.loads(
@@ -211,8 +215,8 @@ if __name__ == "__main__":
             }
         cherrypy.tree.mount (Packet(), "/", conf)
         cherrypy.config.update({
-            "server.socket_host": 'localhost',
-            "server.socket_port": 8082})
+            "server.socket_host": '172.20.54.66',
+            "server.socket_port": 8088})
 
         cherrypy.engine.start()
         cherrypy.engine.block()
