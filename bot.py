@@ -50,7 +50,7 @@ def on_message(msg,chat_id,offset):
                         try:
                             truckid = retreivePacketAssociation(str(packet))
                             if truckid != 0:
-                                po = retrievePosition(str(truckid))
+                                po = retrievePosition(str(truckid)) #todo modify function
                                 pos = json.loads(po)
                                 bot.sendLocation(chat_id, pos['lat'], pos['long'])
                                 return

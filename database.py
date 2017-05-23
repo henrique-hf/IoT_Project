@@ -4,6 +4,9 @@ import datetime
 import pymysql
 import cherrypy
 from thingspeak import Truck
+import requests
+import webbrowser
+
 
 class Packet(object):
     exposed = True
@@ -14,13 +17,18 @@ class Packet(object):
             if self.findPacket(params['packetid']):
                 print (params['packetid'])
                 truckid = self.findTruckAssociation(params['packetid'])
+                channel = self.channelIDretrieve(truckid)
                 position = self.retrievePosition(truckid)
-
-                requests.post('localhost:8091/post',position)
+                webbrowser.open_new_tab('http://localhost/maps.php/?lat='+str(position['lat'])+'&long='+str(position['long'])+'&channel='+channel)
+                #print ('http://localhost/maps.php/?lat='+str(position['lat'])+'&long='+str(position['long']))
 
 
             else:
                 print 'The id inserted is not valid!'
+
+
+        if uri[0] == 'booleanPacket':
+            return str(self.findPacket(params['packetid']))
 
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
@@ -189,7 +197,8 @@ class Packet(object):
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
         pos = json.loads(requests.get(url).content)
         stringa = '{"lat" :' + str(pos['field3']) + ',"long": ' + str(pos['field4']) + '}'
-        return stringa
+        d = json.loads(stringa)
+        return d
 
 
 
@@ -206,8 +215,8 @@ if __name__ == "__main__":
             }
         cherrypy.tree.mount (Packet(), "/", conf)
         cherrypy.config.update({
-            "server.socket_host": 'localhost',
-            "server.socket_port": 8089})
+            "server.socket_host": '172.20.54.66',
+            "server.socket_port": 8088})
 
         cherrypy.engine.start()
         cherrypy.engine.block()
