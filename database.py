@@ -24,11 +24,16 @@ class Packet(object):
 
 
             else:
-                print 'The id inserted is not valid!'
+                print ('The id inserted is not valid!')
 
+        if uri[0] == 'listOfTrucks':
+            return self.trucks()
 
         if uri[0] == 'booleanPacket':
             return str(self.findPacket(params['packetid']))
+
+        if uri[0] == 'packetInTruck':
+            return str(self.fidPacketinTruck(params['packetid'],params['truckid']))
 
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
@@ -54,12 +59,15 @@ class Packet(object):
                 return 'Packet not present in the system'
 
         if uri[0] == 'delivered':
-            if self.findPacket(params['packetid']):
+            if self.findPacket(params['packetid']) and self.fidPacketinTruck(params['packetid'],params['truckid']):
                 try:
                     self.packetDelivered(params['packetid'],params['truckid'])
                     return 'Packet ' + params['packetid'] + ' delivered ' + params['truckid']
+
                 except:
-                    return 'Error in inserting the packet'
+                    return 'Error in removing the packet'
+
+
             else:
                 return 'Packet not present in the system'
 
@@ -98,24 +106,35 @@ class Packet(object):
         except Exception as e:
             print ('Error in reading database',e)
 
-
-    def findPacket(self,packetid):
-        script = 'SELECT `packetid` FROM `tracking`.`packet` WHERE `packetid`=\'' + str(packetid) + '\';'
+    #returns 0 if the association is not in the table, 1 otherwise
+    def fidPacketinTruck(self,packetid,truckid):
+        script = 'SELECT DISTINCT COUNT(*) FROM `tracking`.`p_t` WHERE `packetid`=\'' + str(packetid) + '\' AND `truckid` = \''+truckid+'\';'
         print (script)
         try:
             db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
-            x = cursor.fetchone()
+            x = cursor.fetchone()[0]
             db.close()
-            if x is None:
-                return 0
-            else:
-                return 1
+            return x
 
         except:
             print ('Error in reading database')
 
+    #returns 0 if the packet is not in the system, 1 otherwise
+    def findPacket(self,packetid):
+        script = 'SELECT COUNT(*) FROM `tracking`.`packet` WHERE `packetid`=\'' + str(packetid) + '\';'
+        print (script)
+        try:
+            db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            x = cursor.fetchone()[0]
+            db.close()
+            return x
+
+        except:
+            print ('Error in reading database')
 
     def deletePacket(self,packetid):
         script = "DELETE FROM `tracking`.`packet` WHERE `packetid`='" + str(packetid) + "';"
@@ -139,7 +158,6 @@ class Packet(object):
             cursor = db.cursor()
             cursor.execute(script)
             db.commit()
-            cursor.execute("SELECT * FROM `tracking`.`p_t`")
             db.close()
 
         except:
@@ -172,12 +190,37 @@ class Packet(object):
             db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
-            db.commit()
-            cursor.execute("SELECT * FROM `tracking`.`p_t`")
             db.close()
-
         except:
             print ('Error in reading database')
+
+    def isDelivered(self,packet,truck):
+        script = 'SELECT delivered FROM p_t WHERE packetid = \'' + packet + '\'AND truckid = \''+truck+'\';'
+
+        if (self.fidPacketinTruck(packet,truck)):
+            try:
+                db = pymysql.connect(host="127.0.0.1", user="root", passwd="", db="tracking")
+                cursor = db.cursor()
+                cursor.execute(script)
+                x = cursor.fetchone()
+                db.close()
+                return x
+
+            except:
+                print ('Error in reading database')
+
+        else:
+            return None
+
+    def TrucksInSys(self):
+        channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
+        channels_json = json.loads(channels)
+
+        list = []
+        for ch in channels_json["channels"]:
+                list.append(ch.get('name'))
+                list.append('\n')
+        return list
 
 
     def channelIDretrieve(self, truckID):
@@ -215,8 +258,11 @@ if __name__ == "__main__":
             }
         cherrypy.tree.mount (Packet(), "/", conf)
         cherrypy.config.update({
-            "server.socket_host": '172.20.54.66',
+            "server.socket_host": 'localhost',
+            #"server.socket_host": '172.20.54.66',
             "server.socket_port": 8088})
 
         cherrypy.engine.start()
+        p = Packet()
+        p.findPacket('2')
         cherrypy.engine.block()
