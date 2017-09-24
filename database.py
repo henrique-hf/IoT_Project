@@ -6,7 +6,7 @@ import cherrypy
 from thingspeak import Truck
 import requests
 import webbrowser
-
+import socket
 
 class Packet(object):
     exposed = True
@@ -27,13 +27,13 @@ class Packet(object):
                 print ('The id inserted is not valid!')
 
         if uri[0] == 'listOfTrucks':
-            return self.trucks()
+            return self.TrucksInSys()
 
         if uri[0] == 'booleanPacket':
             return str(self.findPacket(params['packetid']))
 
         if uri[0] == 'packetInTruck':
-            return str(self.fidPacketinTruck(params['packetid'],params['truckid']))
+            return str(self.findPacketinTruck(params['packetid'],params['truckid']))
 
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
@@ -132,6 +132,7 @@ class Packet(object):
             cursor = db.cursor()
             cursor.execute(script)
             x = cursor.fetchone()[0]
+            print (x)
             db.close()
             return x
 
@@ -148,10 +149,10 @@ class Packet(object):
             db.commit()
             db.close()
             if not self.findPacket(packetid):
-                return 'Packet ' + packetid + ' deleted successfully'
+                return 1
 
             else:
-                return 'Packet ' + packetid + ' was not deleted correctly. Please retry'
+                return 0
 
 
         except:
@@ -169,13 +170,14 @@ class Packet(object):
             db.close()
 
             if (self.findPacketinTruck(packetid,truckid)):
-                return True
+                return 1
 
             else:
-                return False
+                return 0
 
         except:
             print ('Error in reading database')
+            return 0
 
     #returns the truckid given the id of the packet
     def findTruckAssociation(self,packet):
@@ -288,9 +290,18 @@ if __name__ == "__main__":
             }
         cherrypy.tree.mount (Packet(), "/", conf)
         cherrypy.config.update({
-            "server.socket_host": 'localhost',
-            #"server.socket_host": '172.20.54.66',
-            "server.socket_port": 8088})
+            #server.socket_host": 'localhost',
+            "server.socket_host": '192.168.43.175',
+            "server.socket_port": 8089})
+
+
+        print (socket.gethostbyname(socket.gethostname()))
+
+
+        #
+        # {   "server.socket_host": str(socket.gethostbyname(socket.gethostname())),
+        #     "server.socket_port": 8088}
+
 
         cherrypy.engine.start()
         cherrypy.engine.block()
