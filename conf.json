@@ -2,7 +2,7 @@
   "trucks": [
     {
       "raspberry": "rasp1",
-      "channelName": "Truck1",
+      "channelName": "1",
       "temperature": {
         "active": true
       },
@@ -16,7 +16,7 @@
     },
     {
       "raspberry": "rasp2",
-      "channelName": "Truck2",
+      "channelName": "2",
       "temperature": {
         "active": true
       },

@@ -106,7 +106,7 @@ class TruckUpdating:
 
 if __name__ == '__main__':
     user_api = '7C2YGM6HF9E63AG2'
-    idchannel = channelIDretrieve('Truck1')
+    idchannel = channelIDretrieve('1')
     api_write = channelAPIretrieve(idchannel, user_api)
     t = TruckUpdating(api_write,idchannel)
     t.mqttConnection()
