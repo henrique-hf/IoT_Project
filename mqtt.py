@@ -109,7 +109,7 @@ class TruckUpdating:
 
 
 if __name__ == '__main__':
-    user_api = requests.get('127.0.0.1:8088/key')
+    user_api = requests.get('127.0.0.1:8088/key').content
     idchannel = channelIDretrieve('1')
     api_write = channelAPIretrieve(idchannel, user_api)
     t = TruckUpdating(api_write,idchannel)
