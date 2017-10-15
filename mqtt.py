@@ -19,12 +19,16 @@ def getTHSensorData():
 
 
 def channelIDretrieve(truckID):
-    channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
-    channels_json = json.loads(channels)
+    #here
+    try:
+        trucks = requests.get("192.168.1.102:8089/trucks").content
+    except:
+        print ('Server cannot be found. Verify to have the right address and to have a proper connection')
+    trucks_json = json.loads(trucks)
 
-    for ch in channels_json["channels"]:
-        if ch.get("name") == truckID:
-            return str(ch.get("id"))
+    for tr in trucks_json["channels"]:
+        if tr.get("channelName") == truckID:
+            return str(tr.get("channelID"))
 
 
 def channelAPIretrieve(channelID, api_key):
