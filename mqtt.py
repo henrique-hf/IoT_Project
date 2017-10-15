@@ -2,7 +2,7 @@ from __future__ import print_function
 import requests
 import json
 import paho.mqtt.publish as publish
-#import Adafruit_DHT
+import Adafruit_DHT
 import time
 
 
