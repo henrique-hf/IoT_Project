@@ -27,7 +27,7 @@ def channelIDretrieve(truckID):
         print ('Server cannot be found. Verify to have the right address and to have a proper connection')
     trucks_json = json.loads(trucks)
 
-    for tr in trucks_json["channels"]:
+    for tr in trucks_json:
         if tr.get("channelName") == truckID:
             return str(tr.get("channelID"))
 
