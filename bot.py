@@ -24,7 +24,7 @@ def retrievePosition(truckid):
     stringa = '{"lat" :' + str(pos['field3']) + ',"long": ' + str(pos['field4']) +'}'
     return stringa
 
-def on_message(msg,chat_id,offset):
+def on_message(msg,chat_id,offset,available_services):
 
     try:
         any(msg['entities'])
@@ -47,78 +47,109 @@ def on_message(msg,chat_id,offset):
 
                     if msg['text'] == '/getposition' or msg['text'] == '/getposition@packet_bot':
 
-                        try:
-                            truckid = retreivePacketAssociation(str(packet))
-                            if truckid != 0:
-                                po = retrievePosition(str(truckid)) #todo modify function
-                                pos = json.loads(po)
-                                bot.sendLocation(chat_id, pos['lat'], pos['long'])
-                                return
+                        if 'getposition' in available_services:
+                            try:
+                                truckid = retreivePacketAssociation(str(packet))
+                                if truckid != 0:
+                                    po = retrievePosition(str(truckid)) #todo modify function
+                                    pos = json.loads(po)
+                                    bot.sendLocation(chat_id, pos['lat'], pos['long'])
+                                    return
 
-                            else:
-                                bot.sendMessage(chat_id, 'Your packet is not in the system')
-                                return
+                                else:
+                                    bot.sendMessage(chat_id, 'Your packet is not in the system')
+                                    return
 
-                        except Exception as detail:
-                            bot.sendMessage(chat_id,"Error in accessing the database")
-                            return
+                            except Exception as detail:
+                                bot.sendMessage(chat_id,"Error in accessing the database")
+                                return
+                        else:
+                            string = 'Operation not available for this service. You can perform:\n'
+                            for x in available_services:
+                                string += x
+                                string += '\n'
+                            bot.sendMessage(chat_id,string)
+
 
 
                     elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
-                        try:
-                            p = Packet()
-                            truckid = p.findTruckAssociation(packet)
+                        if 'gettemperature' in available_services:
+                            try:
+                                p = Packet()
+                                truckid = p.findTruckAssociation(packet)
 
-                            if truckid != 0:
-                                t = Truck()
-                                s = t.retrieveData(truckid)
-                                bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
-                                print (s)
-                            else:
-                                bot.sendMessage(chat_id, 'Your packet is not in the system')
+                                if truckid != 0:
+                                    t = Truck()
+                                    s = t.retrieveData(truckid)
+                                    bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
+                                    print (s)
+                                else:
+                                    bot.sendMessage(chat_id, 'Your packet is not in the system')
 
 
 
-                        except Exception as detail:
-                            bot.sendMessage(chat_id, "Error in accessing the database")
-                            return
+                            except Exception as detail:
+                                bot.sendMessage(chat_id, "Error in accessing the database")
+                                return
+                        else:
+                            string = 'Operation not available for this service. You can perform:\n'
+                            for x in available_services:
+                                string += x
+                                string += '\n'
+                            bot.sendMessage(chat_id,string)
 
                     elif msg['text'] == "/gethumidity" or msg['text'] == "/gethumidity@packet_bot":
-                        try:
-                            p = Packet()
-                            truckid = p.findTruckAssociation(packet)
+                        if 'gethumidity' in available_services:
 
-                            if truckid != 0:
-                                t = Truck()
-                                s = t.retrieveData(truckid)
-                                bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
-                                print (s)
-                            else:
-                                bot.sendMessage(chat_id, 'Your packet is not in the system')
+                            try:
+                                p = Packet()
+                                truckid = p.findTruckAssociation(packet)
 
-                        except Exception as detail:
-                            bot.sendMessage(chat_id, "Error in accessing the database")
-                            return
+                                if truckid != 0:
+                                    t = Truck()
+                                    s = t.retrieveData(truckid)
+                                    bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
+                                    print (s)
+                                else:
+                                    bot.sendMessage(chat_id, 'Your packet is not in the system')
+
+                            except Exception as detail:
+                                bot.sendMessage(chat_id, "Error in accessing the database")
+                                return
+                        else:
+                            string = 'Operation not available for this service. You can perform:\n'
+                            for x in available_services:
+                                string += x
+                                string += '\n'
+                            bot.sendMessage(chat_id,string)
 
 
                     elif msg['text'] == '/getall' or msg['text'] == '/getall@packet_bot':
-                        try:
-                            p = Packet()
-                            truckid = p.findTruckAssociation(packet)
+                        if 'getall' in available_services:
 
-                            if truckid!=0:
-                                t = Truck()
-                                po = retrievePosition(str(truckid))
-                                pos = json.loads(po)
-                                bot.sendLocation(chat_id, pos['lat'], pos['long'])
-                                s = t.retrieveData(truckid)
-                                bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
+                            try:
+                                p = Packet()
+                                truckid = p.findTruckAssociation(packet)
+
+                                if truckid!=0:
+                                    t = Truck()
+                                    po = retrievePosition(str(truckid))
+                                    pos = json.loads(po)
+                                    bot.sendLocation(chat_id, pos['lat'], pos['long'])
+                                    s = t.retrieveData(truckid)
+                                    bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
 
 
 
-                        except Exception as detail:
-                            bot.sendMessage(chat_id, "Error in accessing the database")
-                            return
+                            except Exception as detail:
+                                bot.sendMessage(chat_id, "Error in accessing the database")
+                                return
+                        else:
+                            string = 'Operation not available for this service. You can perform:\n'
+                            for x in available_services:
+                                string += x
+                                string += '\n'
+                            bot.sendMessage(chat_id,string)
 
                     else:
                         bot.sendMessage(chat_id,'Command not found!')
@@ -139,12 +170,17 @@ def on_message(msg,chat_id,offset):
 if __name__ == '__main__':
     bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
     offset = -1
+    services = json.loads(requests.get('http://127.0.0.1:8088/telegram').content)
+    available_services = []
+    for x in services:
+        if services[x] == True:
+            available_services.append(str(x))
     while True:
         msg = bot.getUpdates(offset)
         if len(msg) != 0:
             offset = msg[0]['update_id']+1
             chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
-            on_message(msg[0]['message'],chat_id,offset)
+            on_message(msg[0]['message'],chat_id,offset,available_services)
             print (offset)
 
 
