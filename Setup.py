@@ -1,6 +1,6 @@
 import requests
 import json
-
+import pymysql
 
 class Channels(object):
     def __init__(self):
@@ -68,6 +68,26 @@ class Channels(object):
                 # print channelKey
                 return channelKey
 
+    def deleteAndRebuildDb(self):
+
+        fd = open('Dump20171015.sql', 'r')
+        sqlFile = fd.read()
+        fd.close()
+        # all SQL commands (split on ';')
+        sqlCommands = sqlFile.split(';')
+        try:
+            db = pymysql.connect(host='127.0.0.1', user="root", passwd="", db="tracking")
+            for command in sqlCommands:
+                cursor = db.cursor()
+                try:
+                    cursor.execute(command)
+                    print (command + ' eseguito')
+                except:
+                    print ('Error in script ' + command + ' questo')
+            db.close()
+        except:
+            print ('Error in accesssing database')
+
 
 if __name__ == "__main__":
 
@@ -75,6 +95,7 @@ if __name__ == "__main__":
 
     # clean thingspeak
     channel.deleteAll()
+    channel.deleteAndRebuildDb()
 
     for truck in channel.conf['trucks']:
         name = truck.get('channelName')
