@@ -52,21 +52,24 @@ class TruckUpdating:
         # The Write API Key for the channel
         self.apiKey = api_key
         self.channelID = channel_id
+        #here
 
 
     def mqttConnection(self):
+
+        trucks = json.loads(requests.get('https://192.168.1.102:8089/trucks').content)
+
+        for t in trucks:
+            if t['channelID'] == self.channelID:
+                rate = t['samplingRate']
+                break
+
+        print (rate)
 
         mqttHost = "mqtt.thingspeak.com"
         tTransport = "websockets"
         tPort = 80
         #mqttHost = '127.0.0.1'
-
-
-    # Create the topic string
-        topic = 'channels/%s/' % self.channelID + 'publish/%s' % self.apiKey
-        print (topic)
-        temperature = 30
-        humidity = 10
 
         try:
             json_file = open('gps.json').read()
@@ -104,7 +107,7 @@ class TruckUpdating:
             except Exception as e:
                 print("There was an error while publishing the data.\n",e)
 
-            time.sleep(5)
+            time.sleep(rate)
 
 
 
