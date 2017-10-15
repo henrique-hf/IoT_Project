@@ -21,7 +21,6 @@ def channelIDretrieve(truckID):
     #here
     try:
         trucks = requests.get("http://192.168.1.102:8089/trucks").content
-        print (trucks)
     except:
         print ('Server cannot be found. Verify to have the right address and to have a proper connection')
     trucks_json = json.loads(trucks)
@@ -34,16 +33,17 @@ def channelIDretrieve(truckID):
 def channelAPIretrieve(channelID, api_key):
 
     url = 'https://api.thingspeak.com/channels/%s' % channelID + '?api_key=%s' % api_key
-    print(url)
-    x = requests.put(url).content
-    xj = json.loads(x)
 
-    for i in xj['api_keys']:
-        if i['write_flag'] == True:
-            print(i['api_key'])
-            return i['api_key']
+    try:
+        x = requests.put(url).content
+        xj = json.loads(x)
 
-
+        for i in xj['api_keys']:
+            if i['write_flag'] == True:
+                print(i['api_key'])
+                return i['api_key']
+    except:
+        print ('Impossible to connect to thingspeak. Check the channelID and the APIkey ')
 
 
 class TruckUpdating:
@@ -57,7 +57,10 @@ class TruckUpdating:
 
     def mqttConnection(self):
         #here
-        trucks = json.loads(requests.get('http://192.168.1.102:8089/trucks').content)
+        try:
+            trucks = json.loads(requests.get('http://192.168.1.102:8089/trucks').content)
+        except:
+            print ('Impossible to connect to the server. Check the url and verify that the server is online.')
 
         for t in trucks:
             if t['channelID'] == self.channelID:
@@ -68,8 +71,6 @@ class TruckUpdating:
 
         mqttHost = "mqtt.thingspeak.com"
         tTransport = "websockets"
-        tPort = 80
-        #mqttHost = '127.0.0.1'
 
         try:
             json_file = open('gps.json').read()
@@ -78,8 +79,6 @@ class TruckUpdating:
         except IOError:
             print ('Errore nell\'apertura del file')
 
-
-        #while (True):
 
         for x in gps["trkpt"]:
 
@@ -113,8 +112,11 @@ class TruckUpdating:
 
 if __name__ == '__main__':
     #here
-    user_api = requests.get('http://192.168.1.102:8089/key').content
-    idchannel = channelIDretrieve('1')
-    api_write = channelAPIretrieve(idchannel, user_api)
-    t = TruckUpdating(api_write,idchannel)
-    t.mqttConnection()
+    try:
+        user_api = requests.get('http://192.168.1.102:8089/key').content
+        idchannel = channelIDretrieve('1')
+        api_write = channelAPIretrieve(idchannel, user_api)
+        t = TruckUpdating(api_write, idchannel)
+        t.mqttConnection()
+    except:
+        print ('Impossible to connect to the server. Check the url and verify that the server is on.')
