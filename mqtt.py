@@ -21,7 +21,8 @@ def getTHSensorData():
 def channelIDretrieve(truckID):
     #here
     try:
-        trucks = requests.get("192.168.1.102:8089/trucks").content
+        trucks = requests.get("http://192.168.1.102:8089/trucks").content
+        print (trucks)
     except:
         print ('Server cannot be found. Verify to have the right address and to have a proper connection')
     trucks_json = json.loads(trucks)
@@ -109,7 +110,8 @@ class TruckUpdating:
 
 
 if __name__ == '__main__':
-    user_api = requests.get('127.0.0.1:8088/key').content
+    #here
+    user_api = requests.get('http://192.168.1.102/key').content
     idchannel = channelIDretrieve('1')
     api_write = channelAPIretrieve(idchannel, user_api)
     t = TruckUpdating(api_write,idchannel)
