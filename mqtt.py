@@ -2,7 +2,7 @@ from __future__ import print_function
 import requests
 import json
 import paho.mqtt.publish as publish
-import Adafruit_DHT
+#import Adafruit_DHT
 import time
 
 
@@ -56,8 +56,8 @@ class TruckUpdating:
 
 
     def mqttConnection(self):
-
-        trucks = json.loads(requests.get('https://192.168.1.102:8089/trucks').content)
+        #here
+        trucks = json.loads(requests.get('http://192.168.1.102:8089/trucks').content)
 
         for t in trucks:
             if t['channelID'] == self.channelID:
