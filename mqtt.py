@@ -1,7 +1,6 @@
 from __future__ import print_function
 import requests
 import json
-import datetime
 import paho.mqtt.publish as publish
 import Adafruit_DHT
 import time
@@ -111,7 +110,7 @@ class TruckUpdating:
 
 if __name__ == '__main__':
     #here
-    user_api = requests.get('http://192.168.1.102/key').content
+    user_api = requests.get('http://192.168.1.102:8089/key').content
     idchannel = channelIDretrieve('1')
     api_write = channelAPIretrieve(idchannel, user_api)
     t = TruckUpdating(api_write,idchannel)
