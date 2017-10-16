@@ -1,7 +1,6 @@
 from __future__ import print_function
 import requests
 import json
-import datetime
 import paho.mqtt.publish as publish
 import Adafruit_DHT
 import time
@@ -19,27 +18,32 @@ def getTHSensorData():
 
 
 def channelIDretrieve(truckID):
-    channels = requests.get("https://api.thingspeak.com/users/s201586/channels.json").content
-    channels_json = json.loads(channels)
+    #here
+    try:
+        trucks = requests.get("http://192.168.1.102:8089/trucks").content
+    except:
+        print ('Server cannot be found. Verify to have the right address and to have a proper connection')
+    trucks_json = json.loads(trucks)
 
-    for ch in channels_json["channels"]:
-        if ch.get("name") == truckID:
-            return str(ch.get("id"))
+    for tr in trucks_json:
+        if tr.get("channelName") == truckID:
+            return str(tr.get("channelID"))
 
 
 def channelAPIretrieve(channelID, api_key):
 
     url = 'https://api.thingspeak.com/channels/%s' % channelID + '?api_key=%s' % api_key
-    print(url)
-    x = requests.put(url).content
-    xj = json.loads(x)
 
-    for i in xj['api_keys']:
-        if i['write_flag'] == True:
-            print(i['api_key'])
-            return i['api_key']
+    try:
+        x = requests.put(url).content
+        xj = json.loads(x)
 
-
+        for i in xj['api_keys']:
+            if i['write_flag'] == True:
+                print(i['api_key'])
+                return i['api_key']
+    except:
+        print ('Impossible to connect to thingspeak. Check the channelID and the APIkey ')
 
 
 class TruckUpdating:
@@ -48,21 +52,25 @@ class TruckUpdating:
         # The Write API Key for the channel
         self.apiKey = api_key
         self.channelID = channel_id
+        #here
 
 
     def mqttConnection(self):
+        #here
+        try:
+            trucks = json.loads(requests.get('http://192.168.1.102:8089/trucks').content)
+        except:
+            print ('Impossible to connect to the server. Check the url and verify that the server is online.')
+
+        for t in trucks:
+            if t['channelID'] == self.channelID:
+                rate = t['samplingRate']
+                break
+
+        print (rate)
 
         mqttHost = "mqtt.thingspeak.com"
         tTransport = "websockets"
-        tPort = 80
-        #mqttHost = '127.0.0.1'
-
-
-    # Create the topic string
-        topic = 'channels/%s/' % self.channelID + 'publish/%s' % self.apiKey
-        print (topic)
-        temperature = 30
-        humidity = 10
 
         try:
             json_file = open('gps.json').read()
@@ -71,8 +79,6 @@ class TruckUpdating:
         except IOError:
             print ('Errore nell\'apertura del file')
 
-
-        #while (True):
 
         for x in gps["trkpt"]:
 
@@ -100,13 +106,17 @@ class TruckUpdating:
             except Exception as e:
                 print("There was an error while publishing the data.\n",e)
 
-            time.sleep(5)
+            time.sleep(rate)
 
 
 
 if __name__ == '__main__':
-    user_api = '7C2YGM6HF9E63AG2'
-    idchannel = channelIDretrieve('1')
-    api_write = channelAPIretrieve(idchannel, user_api)
-    t = TruckUpdating(api_write,idchannel)
-    t.mqttConnection()
+    #here
+    try:
+        user_api = requests.get('http://192.168.1.102:8089/key').content
+        idchannel = channelIDretrieve('1')
+        api_write = channelAPIretrieve(idchannel, user_api)
+        t = TruckUpdating(api_write, idchannel)
+        t.mqttConnection()
+    except:
+        print ('Impossible to connect to the server. Check the url and verify that the server is on.')

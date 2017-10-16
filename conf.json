@@ -1,0 +1,50 @@
+{
+  "trucks": [
+    {
+      "raspberry": "rasp1",
+      "channelName": "1",
+      "temperature": {
+        "active": true
+      },
+      "humidity": {
+        "active": true
+      },
+      "position": {
+        "active": true
+      },
+      "samplingRate": 5
+    },
+    {
+      "raspberry": "rasp2",
+      "channelName": "2",
+      "temperature": {
+        "active": true
+      },
+      "humidity": {
+        "active": true
+      },
+      "position": {
+        "active": true
+      },
+      "samplingRate": 5
+    }
+  ],
+  "topics": {
+    "temperature": "field1",
+    "humidity": "field2",
+    "latitude": "field3",
+    "longitude": "field4"
+  },
+  "broker": {
+    "address": "mqtt.thingspeak.com"
+  },
+  "key": "7C2YGM6HF9E63AG2",
+  "user": "s201586",
+   "telegram": {
+    "getposition": true,
+    "gethumidity": false,
+    "gettemperature": true,
+    "getall": true
+  },
+  "database": "127.0.0.1"
+}

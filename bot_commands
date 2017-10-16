@@ -5,5 +5,5 @@ getall - Get all informations about your delivery
 setpacket - Set a packet as the default to track
 getpacket - Get the id of the packet set as default
 changepacket - Change the default packet to track
-deletepacket - Remove the default packet
+deletepacket - Remove the default packets
 
