@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food Delivery Form</title>
+</head>
+<style>
+body {
+    background-image: url(http://www.mpsaspen.com/wp-content/themes/mps/img/boxes.png);
+    background-repeat: repeat-x;
+    }
+#deli_form {
+    position: relative;
+    top: 200px;
+  }
+</style>
+<body style="background-color:powderblue;">
+
+
+
+<form id ="deli_form" method="get" action="http://localhost:8089/create">
+    <center>
+        <h1></h1>
+        <h1>Long Distance Deliveries</h1>
+        <h2>Insert your data here below and submit</h2>
+        <strong>Name</strong><br>
+        <input type="text" name="name"><br>
+        <strong>Address</strong><br>
+        <input type="text" name="address"><br>
+        <strong>Nr.</strong><br>
+        <input type="text" name="nr"><br>
+        <strong>City</strong><br>
+        <input type="text" name="city"><br>
+        <strong>Zip code</strong><br>
+        <textarea name="zip"></textarea><br>
+        <strong>Telephone</strong><br>
+        <textarea name="telephone"></textarea><br>
+        <input type="submit" value="Send">
+        <p>This service will assure you 30-minute updates</p>
+    </center>
+</form>
+</body>
+</html>
