@@ -4,6 +4,7 @@ import datetime
 import pymysql
 import cherrypy
 import webbrowser
+import qrcode
 from urlparse import urlparse
 
 
@@ -28,6 +29,25 @@ class Packet(object):
 
         return "%04d%02d%02d%02d%02d%02d" % (
             time.year, time.month, time.day, time.hour, time.minute, time.second)
+
+    # Generate a QRcode based on the packet code
+    # Need to provide somewhere the packetID
+    # for now i didn't put it in the code... You can do it in the right place!!
+    def qrCodeGenerator(self, packetID="generic"):
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(packetID)
+        qr.make(fit=True)
+
+        QRimg = qr.make_image()
+        name = 'QRcodeP'+ packetID + '.png'
+        QRimg.save(name)
+
 
     # inserts a packet in the DB
     def insertPacket(self, packet, name, address, n_address, zip, city, telephone, lat, lon):
