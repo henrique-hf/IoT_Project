@@ -11,6 +11,9 @@ import socket
 class Packet(object):
     exposed = True
 
+    def __init__(self):
+        self.homeCatalog = '127.0.0.1:8088'
+        self.database = requests.get(self.homeCatalog + '/database').content
     def GET(self, *uri,**params):
 
         if uri[0] == 'findPacket':

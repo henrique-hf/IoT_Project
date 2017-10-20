@@ -6,6 +6,7 @@ import Adafruit_DHT
 import time
 
 
+host = '192.168.1.102:8089'
 
 def getTHSensorData():
     humidity, temperature = Adafruit_DHT.read_retry(11, 2)  # 11 stands for DHT11 and 2 for pin to read
@@ -18,9 +19,8 @@ def getTHSensorData():
 
 
 def channelIDretrieve(truckID):
-    #here
     try:
-        trucks = requests.get("http://192.168.1.102:8089/trucks").content
+        trucks = requests.get(host + "/trucks").content
     except:
         print ('Server cannot be found. Verify to have the right address and to have a proper connection')
     trucks_json = json.loads(trucks)
@@ -52,13 +52,10 @@ class TruckUpdating:
         # The Write API Key for the channel
         self.apiKey = api_key
         self.channelID = channel_id
-        #here
-
 
     def mqttConnection(self):
-        #here
         try:
-            trucks = json.loads(requests.get('http://192.168.1.102:8089/trucks').content)
+            trucks = json.loads(requests.get(host + '/trucks').content)
         except:
             print ('Impossible to connect to the server. Check the url and verify that the server is online.')
 
@@ -66,8 +63,6 @@ class TruckUpdating:
             if t['channelID'] == self.channelID:
                 rate = t['samplingRate']
                 break
-
-        print (rate)
 
         mqttHost = "mqtt.thingspeak.com"
         tTransport = "websockets"
@@ -111,9 +106,8 @@ class TruckUpdating:
 
 
 if __name__ == '__main__':
-    #here
     try:
-        user_api = requests.get('http://192.168.1.102:8089/key').content
+        user_api = requests.get(host + '/key').content
         idchannel = channelIDretrieve('1')
         api_write = channelAPIretrieve(idchannel, user_api)
         t = TruckUpdating(api_write, idchannel)

@@ -4,8 +4,9 @@ import datetime
 import pymysql
 import cherrypy
 import webbrowser
-from urlparse import urlparse
+import qrcode
 
+host = '192.168.1.102:8089'
 
 class Packet(object):
     exposed = True
@@ -13,14 +14,31 @@ class Packet(object):
     def __init__(self):
         ############# change the address of the webserver
         self.host = '127.0.0.1'
-        #self.catalog = 'http://127.0.0.1:8088'
-        #url = urlparse('http://127.0.0.1:8088/topics')
-        self.topics = requests.get('http://127.0.0.1:8088/topics').content
+        self.catalog = 'http://192.168.1.102:8089'
+        self.database = requests.get(self.catalog+'/database').content
+        self.topics = requests.get(self.catalog + '/topics').content
         self.topicsJSON = json.loads(self.topics)
         self.lat = self.topicsJSON['latitude']
         self.long = self.topicsJSON['longitude']
 
     # generates an IdNumber for the packet based on the date
+    def qrCodeGenerator(self, packetID="generic"):
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(packetID)
+        qr.make(fit=True)
+
+        QRimg = qr.make_image()
+        name = 'QRcodeP'+ packetID + '.png'
+        QRimg.save(name)
+
+
+
     def idNumber(self):
         time = datetime.datetime.today()
         """Generate a number based on timestamp that will be used as the channel
@@ -43,7 +61,7 @@ class Packet(object):
         script += "'" + str(lon) + "')"
 
         try:
-            db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+            db = pymysql.connect(host=self.database, user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
             db.commit()
@@ -129,27 +147,6 @@ class Packet(object):
             return 0
 
     # returns the truckid given the id of the packet
-    def findTruckAssociation(self, packet):
-        if self.findPacket(packet):
-            script = 'SELECT truckid FROM p_t' \
-                     ' WHERE packetid = ' + packet
-
-            try:
-                db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
-                cursor = db.cursor()
-                cursor.execute(script)
-                x = cursor.fetchone()
-                db.close()
-                if x is None:
-                    return 0
-                else:
-                    truckid = x[0]
-                    return truckid
-
-            except:
-                print ('Error in reading database')
-        else:
-            return 'Packet' + packet + 'not present in the system'
 
     # update the status of the delivery to delivered
     def packetDelivered(self, packet, truck):
@@ -226,6 +223,29 @@ class Packet(object):
 
     def GET(self, *uri, **params):
 
+        if uri[0] == 'findAssociation':
+            packet = params['packet']
+            if self.findPacket(packet):
+                script = 'SELECT truckid FROM p_t' \
+                         ' WHERE packetid = ' + packet
+
+                try:
+                    db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+                    cursor = db.cursor()
+                    cursor.execute(script)
+                    x = cursor.fetchone()
+                    db.close()
+                    if x is None:
+                        return 0
+                    else:
+                        truckid = x[0]
+                        return truckid
+
+                except:
+                    print ('Error in reading database')
+            else:
+                return 'Packet' + packet + 'not present in the system'
+
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
                 print (params['packetid'])
@@ -284,9 +304,8 @@ class Packet(object):
 
 
 if __name__ == "__main__":
-
-    #host = requests.get('http://127.0.0.1:8088/database').content
-    host = '127.0.0.1'
+    catalog = 'http://192.168.1.102:8089'
+    host = requests.get(catalog + '/database').content
 
     conf = {
         "/": {
@@ -297,6 +316,6 @@ if __name__ == "__main__":
     cherrypy.tree.mount(Packet(), "/", conf)
     cherrypy.config.update({
         "server.socket_host" : host,
-        "server.socket_port": 8089})
+        "server.socket_port": 8090})
     cherrypy.engine.start()
     cherrypy.engine.block()
