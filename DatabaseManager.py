@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-host = '192.168.1.102:8089'
+catalog = '127.0.0.1:8089'
 
 class Packet(object):
     exposed = True
@@ -14,7 +14,7 @@ class Packet(object):
     def __init__(self):
         ############# change the address of the webserver
         self.host = '127.0.0.1'
-        self.catalog = 'http://192.168.1.102:8089'
+        self.catalog = 'http://'+ catalog
         self.database = requests.get(self.catalog+'/database').content
         self.topics = requests.get(self.catalog + '/topics').content
         self.topicsJSON = json.loads(self.topics)
@@ -269,14 +269,25 @@ class Packet(object):
 
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
-            geometry = json.loads(
-                requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address).content)
 
-            lat = geometry['results'][0]['geometry']['location']['lat']
-            long = geometry['results'][0]['geometry']['location']['lng']
+            try:
+                geometry = json.loads(
+                    requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address + "&key=AIzaSyCx5ZMkXsQzq9E8etxOEIh-6fBYE9yAlCs").content)
 
-            self.insertPacket(self.idNumber(), params['name'], params['address'], params['nr'], params['zip'],
+                print geometry
+                lat = geometry['results'][0]['geometry']['location']['lat']
+                long = geometry['results'][0]['geometry']['location']['lng']
+            except:
+                lat = 0
+                long = 0
+
+            id = self.idNumber()
+            self.insertPacket(id, params['name'], params['address'], params['nr'], params['zip'],
                               params['city'], params['telephone'], lat, long)
+
+            self.qrCodeGenerator(id)
+
+            webbrowser.open_new_tab('http://localhost/packetInserted.php/?packet=' + id)
 
             return json.dumps(params) + ' INSERTED'
 
@@ -304,8 +315,7 @@ class Packet(object):
 
 
 if __name__ == "__main__":
-    catalog = 'http://192.168.1.102:8089'
-    host = requests.get(catalog + '/database').content
+    host = requests.get('http://' + catalog + '/database').content
 
     conf = {
         "/": {
@@ -316,6 +326,6 @@ if __name__ == "__main__":
     cherrypy.tree.mount(Packet(), "/", conf)
     cherrypy.config.update({
         "server.socket_host" : host,
-        "server.socket_port": 8090})
+        "server.socket_port": 8092})
     cherrypy.engine.start()
     cherrypy.engine.block()

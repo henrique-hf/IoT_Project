@@ -1,6 +1,7 @@
 import cherrypy
 import json
 
+host = '127.0.0.1'
 
 class Catalog(object):
     exposed = True
@@ -83,8 +84,7 @@ if __name__ == "__main__":
             }
         cherrypy.tree.mount(Catalog(), "/", conf)
         cherrypy.config.update({
-            "server.socket_host":'192.168.1.102',
-            #"server.socket_host": '127.0.0.1',
+            "server.socket_host": host,
             "server.socket_port": 8089})
         cherrypy.engine.start()
         cherrypy.engine.block()
