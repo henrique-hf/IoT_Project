@@ -83,7 +83,7 @@ class Channels(object):
                     cursor.execute(command)
                     print (command + ' eseguito')
                 except:
-                    print ('Error in script ' + command + ' questo')
+                    print ('Error in script ' + command)
             db.close()
         except:
             print ('Error in accesssing database')
