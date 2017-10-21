@@ -1,6 +1,11 @@
 --
 -- Table structure for table `p_t`
 --
+DROP SCHEMA IF EXISTS `tracking`;
+CREATE SCHEMA `tracking`;
+
+ALTER USER root WITH DEFAULT_SCHEMA = `tracking`;
+
 
 DROP TABLE IF EXISTS `p_t`;
 CREATE TABLE `p_t` (
