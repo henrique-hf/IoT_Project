@@ -108,7 +108,7 @@ class TruckUpdating:
 
 if __name__ == '__main__':
     try:
-        user_api = requests.get(host + '/key').content
+        user_api = requests.get('http://' + host + '/key').content
         idchannel = channelIDretrieve(sys.argv[0])
         print(idchannel)
         api_write = channelAPIretrieve(idchannel, user_api)
