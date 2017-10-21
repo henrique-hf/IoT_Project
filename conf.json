@@ -46,5 +46,5 @@
     "gettemperature": true,
     "getall": true
   },
-  "database": "127.0.0.1"
+  "database": "192.168.1.107"
 }

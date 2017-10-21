@@ -4,9 +4,10 @@ import json
 import paho.mqtt.publish as publish
 import Adafruit_DHT
 import time
+import sys
 
 
-host = '192.168.1.102:8089'
+host = '192.168.1.104:8089'
 
 def getTHSensorData():
     humidity, temperature = Adafruit_DHT.read_retry(11, 2)  # 11 stands for DHT11 and 2 for pin to read
@@ -108,7 +109,8 @@ class TruckUpdating:
 if __name__ == '__main__':
     try:
         user_api = requests.get(host + '/key').content
-        idchannel = channelIDretrieve('1')
+        idchannel = channelIDretrieve(sys.argv[0])
+        print(idchannel)
         api_write = channelAPIretrieve(idchannel, user_api)
         t = TruckUpdating(api_write, idchannel)
         t.mqttConnection()

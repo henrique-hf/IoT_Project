@@ -1,7 +1,7 @@
 import cherrypy
 import json
 
-host = '127.0.0.1'
+host = '192.168.1.104'
 
 class Catalog(object):
     exposed = True

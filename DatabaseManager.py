@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = '127.0.0.1:8089'
+catalog = '192.168.1.104:8089'
 
 class Packet(object):
     exposed = True
@@ -315,7 +315,12 @@ class Packet(object):
 
 
 if __name__ == "__main__":
-    host = requests.get('http://' + catalog + '/database').content
+    try:
+        host = requests.get('http://' + catalog + '/database').content
+    except:
+        print ('The server is not at the url requested ('+catalog+')')
+        exit()
+
 
     conf = {
         "/": {
