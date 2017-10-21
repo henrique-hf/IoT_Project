@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = '192.168.1.104:8089'
+catalog = 'http://192.168.1.104:8089'
 
 class Packet(object):
     exposed = True
@@ -14,9 +14,7 @@ class Packet(object):
     def __init__(self):
         ############# change the address of the webserver
         self.host = '127.0.0.1'
-        self.catalog = 'http://'+ catalog
-        self.database = requests.get(self.catalog+'/database').content
-        self.topics = requests.get(self.catalog + '/topics').content
+        self.topics = requests.get(catalog + '/topics').content
         self.topicsJSON = json.loads(self.topics)
         self.lat = self.topicsJSON['latitude']
         self.long = self.topicsJSON['longitude']
@@ -61,7 +59,7 @@ class Packet(object):
         script += "'" + str(lon) + "')"
 
         try:
-            db = pymysql.connect(host=self.database, user="root", passwd="", db="tracking")
+            db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
             db.commit()
@@ -78,7 +76,6 @@ class Packet(object):
     def findPacketinTruck(self, packetid, truckid):
         script = 'SELECT DISTINCT COUNT(*) FROM `tracking`.`p_t` WHERE `packetid`=\'' + str(
             packetid) + '\' AND `truckid` = \'' + truckid + '\';'
-        print (script)
 
         try:
             db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
@@ -94,13 +91,11 @@ class Packet(object):
     # returns 0 if the packet is not in the system, 1 otherwise
     def findPacket(self, packetid):
         script = 'SELECT COUNT(*) FROM `tracking`.`packet` WHERE `packetid`=\'' + str(packetid) + '\';'
-        print (script)
         try:
             db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
             x = cursor.fetchone()[0]
-            print (x)
             db.close()
             return x
 
@@ -149,21 +144,21 @@ class Packet(object):
     # returns the truckid given the id of the packet
 
     # update the status of the delivery to delivered
-    def packetDelivered(self, packet, truck):
-        if self.findPacketinTruck(packet, truck):
-            script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "' and`truckid`='" + truck + "';"
-            try:
-                db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
-                cursor = db.cursor()
-                cursor.execute(script)
-                db.close()
-            except:
-                print ('Error in reading database')
-        else:
-            if self.findPacket(packet):
-                return 'Packet ' + packet + 'not present in the truck ' + truck
-            else:
-                return 'Packet ' + packet + ' not present in the system at all'
+    def packetDelivered(self, packet):#, truck):
+        #if self.findPacketinTruck(packet, truck):
+        script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "';"# and`truckid`='" + truck + "';"
+        try:
+            db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            db.close()
+        except:
+            print ('Error in reading database')
+        # else:
+        #     if self.findPacket(packet):
+        #         return 'Packet ' + packet + 'not present in the truck ' + truck
+        #     else:
+        #         return 'Packet ' + packet + ' not present in the system at all'
 
     # check if a packet has been delivered
     def isDelivered(self, packet, truck):
@@ -186,8 +181,7 @@ class Packet(object):
 
     # retrieve list of trucks in the system
     def TrucksInSys(self):
-        ##### change address (home catalog)
-        data = requests.get('http://127.0.0.1:8088/trucks').content
+        data = requests.get(catalog + '/trucks').content
         dataJSON = json.loads(data)
         trucks = []
         for element in dataJSON:
@@ -198,17 +192,28 @@ class Packet(object):
     # retrieves from ThingSpeak the ID of a channel for a gien truckid
     def channelIDretrieve(self, truckID):
         ##### change address (home catalog)
-        data = requests.get('http://127.0.0.1:8088/trucks').content
+        data = requests.get(catalog + '/trucks').content
         dataJSON = json.loads(data)
         for element in dataJSON:
             if element['channelName'] == str(truckID):
                 return element['channelID']
 
-    # retrieve the truck associated to the packet
+
+    #retrieve the truck associated to the packet
     def retreivePacketAssociation(self, packetid):
         if self.findPacket(packetid):
-            truckid = self.findTruckAssociation(packetid)
-            return truckid
+            script = "SELECT truckid from tracking.p_t WHERE packetid = '" + packetid + "'"
+            try:
+                db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+                cursor = db.cursor()
+                cursor.execute(script)
+                x = cursor.fetchone()[0]
+                db.close()
+                return int(x)
+
+            except:
+                print ('Error in reading database')
+                return 0
         else:
             return 0
 
@@ -220,6 +225,23 @@ class Packet(object):
         string = '{"lat" :' + str(pos[self.lat]) + ',"long": ' + str(pos[self.long]) + '}'
         d = json.loads(string)
         return d
+
+    def packetInfo(self,packetid):
+        if self.findPacket(packetid):
+            script = "SELECT * FROM tracking.packet WHERE packetid = '" + packetid + "';"
+            try:
+                db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+                cursor = db.cursor()
+                cursor.execute(script)
+                x = cursor.fetchall()
+                db.close()
+                return x
+
+            except:
+                print ('Error in reading database')
+                return 0
+        else:
+            return 0
 
     def GET(self, *uri, **params):
 
@@ -236,7 +258,7 @@ class Packet(object):
                     x = cursor.fetchone()
                     db.close()
                     if x is None:
-                        return 0
+                        return str(0)
                     else:
                         truckid = x[0]
                         return truckid
@@ -244,22 +266,17 @@ class Packet(object):
                 except:
                     print ('Error in reading database')
             else:
-                return 'Packet' + packet + 'not present in the system'
+                return 0#'Packet' + packet + 'not present in the system'
 
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
-                print (params['packetid'])
-                truckid = self.findTruckAssociation(params['packetid'])
+                truckid = self.retreivePacketAssociation(params['packetid'])
                 channel = self.channelIDretrieve(truckid)
                 position = self.retrievePosition(truckid)
                 webbrowser.open_new_tab('http://localhost/maps.php/?lat=' + str(position['lat']) + '&long=' + str(
                     position['long']) + '&channel=' + channel)
-                # print ('http://localhost/maps.php/?lat='+str(position['lat'])+'&long='+str(position['long']))
             else:
                 print ('The id inserted is not valid!')
-
-        if uri[0] == 'listOfTrucks':
-            return self.TrucksInSys()
 
         if uri[0] == 'booleanPacket':
             return str(self.findPacket(params['packetid']))
@@ -274,7 +291,6 @@ class Packet(object):
                 geometry = json.loads(
                     requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address + "&key=AIzaSyCx5ZMkXsQzq9E8etxOEIh-6fBYE9yAlCs").content)
 
-                print geometry
                 lat = geometry['results'][0]['geometry']['location']['lat']
                 long = geometry['results'][0]['geometry']['location']['lng']
             except:
@@ -302,10 +318,10 @@ class Packet(object):
                 return 'Packet not present in the system'
 
         if uri[0] == 'delivered':
-            if self.findPacket(params['packetid']) and self.findPacketinTruck(params['packetid'], params['truckid']):
+            if self.findPacket(params['packetid']):# and self.findPacketinTruck(params['packetid'], params['truckid']):
                 try:
-                    self.packetDelivered(params['packetid'], params['truckid'])
-                    return 'Packet ' + params['packetid'] + ' delivered ' + params['truckid']
+                    self.packetDelivered(params['packetid'])#, params['truckid'])
+                    return 'Packet ' + params['packetid'] + ' delivered ' #+ params['truckid']
 
                 except:
                     return 'Error in removing the packet'
@@ -313,12 +329,19 @@ class Packet(object):
             else:
                 return 'Packet not present in the system'
 
+        if uri[0] == 'packetInfo':
+            img = "C:\Users\Matteo\PycharmProjects\IoT_Project\QRcodeP20171021144055.png"
+            return img
+            #return str(self.packetInfo(params['packetid']))
+
+
 
 if __name__ == "__main__":
     try:
-        host = requests.get('http://' + catalog + '/database').content
+        response = requests.get(catalog+'/database')
+        host = response.content
     except:
-        print ('The server is not at the url requested ('+catalog+')')
+        print ('The server is not at the url requested ('+catalog+')',response)
         exit()
 
 

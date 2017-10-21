@@ -7,8 +7,8 @@ from thingspeak import Truck
 
 # 171602042017
 
-host = 'http://192.168.1.102:8089'
-database = 'http://' + requests.get(host + '/database').content + ':8090'
+host = 'http://192.168.1.104:8089'
+database = 'http://' + requests.get(host + '/database').content + ':8092'
 last_processed = 0
 flag = False
 
