@@ -7,7 +7,7 @@ import time
 import sys
 
 
-host = '192.168.1.104:8089'
+host = '192.168.1.107:8089'
 
 def getTHSensorData():
     humidity, temperature = Adafruit_DHT.read_retry(11, 2)  # 11 stands for DHT11 and 2 for pin to read
