@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = 'http://192.168.1.104:8089'
+catalog = 'http://192.168.1.107:8089'
 
 class Packet(object):
     exposed = True
@@ -14,7 +14,10 @@ class Packet(object):
     def __init__(self):
         ############# change the address of the webserver
         self.host = '127.0.0.1'
-        self.topics = requests.get(catalog + '/topics').content
+        try:
+            self.topics = requests.get(catalog + '/topics').content
+        except:
+            print ('Catalog not reachable. Check your URL', catalog + '/topics')
         self.topicsJSON = json.loads(self.topics)
         self.lat = self.topicsJSON['latitude']
         self.long = self.topicsJSON['longitude']
@@ -180,19 +183,22 @@ class Packet(object):
             return None
 
     # retrieve list of trucks in the system
-    def TrucksInSys(self):
-        data = requests.get(catalog + '/trucks').content
-        dataJSON = json.loads(data)
-        trucks = []
-        for element in dataJSON:
-            trucks.append(element['channelName'])
-            # trucks.append('\n')
-        return trucks
+    # def TrucksInSys(self):
+    #     data = requests.get(catalog + '/trucks').content
+    #     dataJSON = json.loads(data)
+    #     trucks = []
+    #     for element in dataJSON:
+    #         trucks.append(element['channelName'])
+    #     return trucks
 
     # retrieves from ThingSpeak the ID of a channel for a gien truckid
     def channelIDretrieve(self, truckID):
         ##### change address (home catalog)
-        data = requests.get(catalog + '/trucks').content
+        try:
+            data = requests.get(catalog + '/trucks').content
+        except Exception as e:
+            print ('Catalog not reachable. Check your URL',catalog + '/trucks',e.message)
+            return
         dataJSON = json.loads(data)
         for element in dataJSON:
             if element['channelName'] == str(truckID):
@@ -221,7 +227,11 @@ class Packet(object):
     def retrievePosition(self, truckid):
         channel = self.channelIDretrieve(truckid)
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
-        pos = json.loads(requests.get(url).content)
+        try:
+            pos = json.loads(requests.get(url).content)
+        except Exception as e:
+            print ('Error in ThingSpeak connection. Check your URL', url, e.message)
+            return
         string = '{"lat" :' + str(pos[self.lat]) + ',"long": ' + str(pos[self.long]) + '}'
         d = json.loads(string)
         return d
@@ -246,27 +256,11 @@ class Packet(object):
     def GET(self, *uri, **params):
 
         if uri[0] == 'findAssociation':
-            packet = params['packet']
-            if self.findPacket(packet):
-                script = 'SELECT truckid FROM p_t' \
-                         ' WHERE packetid = ' + packet
-
-                try:
-                    db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
-                    cursor = db.cursor()
-                    cursor.execute(script)
-                    x = cursor.fetchone()
-                    db.close()
-                    if x is None:
-                        return str(0)
-                    else:
-                        truckid = x[0]
-                        return truckid
-
-                except:
-                    print ('Error in reading database')
+            if self.findPacket(params['packetid']):
+                truckid = self.retreivePacketAssociation(params['packetid'])
+                return str(truckid)
             else:
-                return 0#'Packet' + packet + 'not present in the system'
+                print ('The id inserted is not valid!')
 
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
@@ -277,6 +271,7 @@ class Packet(object):
                     position['long']) + '&channel=' + channel)
             else:
                 print ('The id inserted is not valid!')
+                webbrowser.open('http://localhost/web_not_found.html')
 
         if uri[0] == 'booleanPacket':
             return str(self.findPacket(params['packetid']))
@@ -330,9 +325,19 @@ class Packet(object):
                 return 'Packet not present in the system'
 
         if uri[0] == 'packetInfo':
-            img = "C:\Users\Matteo\PycharmProjects\IoT_Project\QRcodeP20171021144055.png"
-            return img
-            #return str(self.packetInfo(params['packetid']))
+            if self.findPacket(params['packetid']):
+                return self.packetInfo(params['packetid'])
+
+            else:
+                print ('Packet not in the system')
+                return ('Packet not in the system')
+
+        if uri[0] == 'packetQR':
+            if self.findPacket(params['packetid']):
+                img = 'localhost/QRcodeP' + str(params['packetid']) + '.png'
+                webbrowser.open_new_tab(img)
+            else:
+                print ('Packet not in the system')
 
 
 
@@ -340,8 +345,8 @@ if __name__ == "__main__":
     try:
         response = requests.get(catalog+'/database')
         host = response.content
-    except:
-        print ('The server is not at the url requested ('+catalog+')',response)
+    except Exception as e:
+        print ('The server is not at the url requested', catalog, e.message)
         exit()
 
 

@@ -5,7 +5,7 @@ import time
 import telepot
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 from zdatabase import Packet
-from thingspeak import Truck
+from zthingspeak import Truck
 
 # 171602042017
 

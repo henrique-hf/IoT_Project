@@ -3,14 +3,43 @@ import requests
 import json
 import time
 import telepot
-from thingspeak import Truck
+from zthingspeak import Truck
 
-# 171602042017
 
-host = 'http://192.168.1.104:8089'
-database = 'http://' + requests.get(host + '/database').content + ':8092'
+host = 'http://192.168.1.107:8089'
+try:
+    database = 'http://' + requests.get(host + '/database').content + ':8092'
+except:
+    print ('Connection Error. Not able to reach the catalog for the acquistion of the DB address. Check your URL.')
 last_processed = 0
 flag = False
+
+
+def retrieveData(truckID):
+    try:
+        trucks = json.loads(requests.get(host + '/trucks').content)
+        print (trucks)
+    except:
+        print ('Error in accessing the catalog. Check your url')
+    channel = ''
+    for t in trucks:
+        if t['channelName'] == str(truckID):
+            channel = t['channelID']
+            break
+
+    url = "https://api.thingspeak.com/channels/" + channel + "/feeds/last"
+    try:
+        x = json.loads(requests.get(url).content)
+        results = {'temperature': x["field1"],
+                   'humidity': x["field2"]}
+        return results
+    except Exception as e:
+        print ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
+        return ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
+
+
+
+
 
 def retrievePosition(truckid):
     try:
@@ -24,12 +53,14 @@ def retrievePosition(truckid):
             break
 
     url = 'https://api.thingspeak.com/channels/'+str(channel)+'/feeds/last'
+    print (url)
     try:
         pos = json.loads(requests.get(url).content)
         stringa = '{"lat" :' + str(pos['field3']) + ',"long": ' + str(pos['field4']) + '}'
         return stringa
-    except:
-        print('TS URL not valid. Impossible to connect')
+    except Exception as e:
+        print('Problem in ThingSpeak Connection! Verify the channelID ', channel, e.message)
+        return ('Problem in ThingSpeak Connection! Verify the channelID ', channel, e.message)
 
 
 def on_message(msg,chat_id,offset,available_services):
@@ -53,11 +84,19 @@ def on_message(msg,chat_id,offset,available_services):
                     trovato = True
                     packet = (message['message']['text'])
 
+                    try:
+                        truckid = int(requests.get(database + '/findAssociation?packetid=' + str(packet)).content)
+                        print (truckid)
+                    except Exception as e:
+                        bot.sendMessage(chat_id, 'Connection Error')
+                        print('Connection Error. Check the database URL')
+                        return
+
                     if msg['text'] == '/getposition' or msg['text'] == '/getposition@packet_bot':
 
                         if 'getposition' in available_services:
                             try:
-                                truckid = int(requests.get(database + '/findAssociation?packet='+str(packet)).content)
+                                print (truckid)
                                 if truckid != 0:
                                     po = retrievePosition(str(truckid)) #todo modify function
                                     pos = json.loads(po)
@@ -70,6 +109,7 @@ def on_message(msg,chat_id,offset,available_services):
 
                             except Exception as detail:
                                 bot.sendMessage(chat_id,"Error in accessing the database")
+                                print ('Error in accessing the database',detail.message)
                                 return
                         else:
                             string = 'Operation not available for this service. You can perform:\n'
@@ -83,10 +123,8 @@ def on_message(msg,chat_id,offset,available_services):
                     elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
                         if 'gettemperature' in available_services:
                             try:
-                                truckid = int(requests.get(database + '/findAssociation?packet='+str(packet)).content)
                                 if truckid != 0:
-                                    t = Truck()
-                                    s = t.retrieveData(truckid)
+                                    s = retrieveData(truckid)
                                     bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
                                     print (s)
                                 else:
@@ -94,7 +132,7 @@ def on_message(msg,chat_id,offset,available_services):
 
                             except Exception as e:
                                 bot.sendMessage(chat_id, "Error in accessing the database")
-                                print ('Not albe to connect to the catalogue. Check your connection',e.message)
+                                print ('Error in accessing the database:',e.message)
 
                                 return
                         else:
@@ -108,10 +146,8 @@ def on_message(msg,chat_id,offset,available_services):
                         if 'gethumidity' in available_services:
 
                             try:
-                                truckid = int(requests.get(database + '/findAssociation?packet='+str(packet)).content)
                                 if truckid != 0:
-                                    t = Truck()
-                                    s = t.retrieveData(truckid)
+                                    s = retrieveData(truckid)
                                     bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
                                     print (s)
                                 else:
@@ -119,7 +155,7 @@ def on_message(msg,chat_id,offset,available_services):
 
                             except Exception as detail:
                                 bot.sendMessage(chat_id, "Error in accessing the database")
-                                print ('Not able to connect to the catalog. Check the URL', detail.message)
+                                print ('Error in accessing the database:', detail.message)
                                 return
                         else:
                             string = 'Operation not available for this service. You can perform:\n'
@@ -131,22 +167,17 @@ def on_message(msg,chat_id,offset,available_services):
 
                     elif msg['text'] == '/getall' or msg['text'] == '/getall@packet_bot':
                         if 'getall' in available_services:
-
                             try:
-                                truckid = int(requests.get(database + '/findAssociation?packet='+str(packet)).content)
                                 if truckid!=0:
-                                    t = Truck()
                                     po = retrievePosition(str(truckid))
                                     pos = json.loads(po)
                                     bot.sendLocation(chat_id, pos['lat'], pos['long'])
-                                    s = t.retrieveData(truckid)
+                                    s = retrieveData(truckid)
                                     bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
-
-
 
                             except Exception as detail:
                                 bot.sendMessage(chat_id, "Error in accessing the database")
-                                print ('Not able to connect to the catalog. Check the URL', detail.message)
+                                print ('Error in accessing the database', detail.message)
                                 return
                         else:
                             string = 'Operation not available for this service. You can perform:\n'
@@ -172,22 +203,25 @@ def on_message(msg,chat_id,offset,available_services):
 
 
 if __name__ == '__main__':
+    time.sleep(10)
     bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
     offset = -1
     try:
         services = json.loads(requests.get(host +'/telegram').content)
-        available_services = []
-        for x in services:
-            if services[x] == True:
-                available_services.append(str(x))
-        while True:
-            msg = bot.getUpdates(offset)
-            if len(msg) != 0:
-                offset = msg[0]['update_id']+1
-                chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
-                on_message(msg[0]['message'],chat_id,offset,available_services)
-                print (offset)
     except:
         print('Not able to connect to the catalog. Check your URL')
+        exit()
+    available_services = []
+    for x in services:
+        if services[x] == True:
+            available_services.append(str(x))
+    while True:
+        msg = bot.getUpdates(offset)
+        if len(msg) != 0:
+            offset = msg[0]['update_id']+1
+            chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
+            on_message(msg[0]['message'],chat_id,offset,available_services)
+            print (offset)
+
 
 
