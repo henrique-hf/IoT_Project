@@ -1,6 +1,6 @@
 import requests
 import json
-from thingspeak import Truck
+from zthingspeak import Truck
 
 class ManageTruck():
 

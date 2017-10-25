@@ -3,7 +3,7 @@ import json
 import datetime
 import pymysql
 import cherrypy
-from thingspeak import Truck
+from zthingspeak import Truck
 import requests
 import webbrowser
 import socket
