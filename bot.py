@@ -6,7 +6,7 @@ import telepot
 from zthingspeak import Truck
 
 
-host = 'http://192.168.1.107:8089'
+host = 'http://192.168.1.109:8089'
 try:
     database = 'http://' + requests.get(host + '/database').content + ':8092'
 except:
