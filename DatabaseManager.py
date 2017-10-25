@@ -149,11 +149,12 @@ class Packet(object):
     # update the status of the delivery to delivered
     def packetDelivered(self, packet):#, truck):
         #if self.findPacketinTruck(packet, truck):
-        script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "';"# and`truckid`='" + truck + "';"
+        script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "'"
         try:
             db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
             cursor = db.cursor()
             cursor.execute(script)
+            db.commit()
             db.close()
         except:
             print ('Error in reading database')
@@ -162,6 +163,18 @@ class Packet(object):
         #         return 'Packet ' + packet + 'not present in the truck ' + truck
         #     else:
         #         return 'Packet ' + packet + ' not present in the system at all'
+
+    def notDelivered(self, packet):  # , truck):
+        # if self.findPacketinTruck(packet, truck):
+        script = "UPDATE `tracking`.`p_t` SET `delivered`='0' WHERE `packetid`='" + packet + "'"
+        try:
+            db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+            cursor = db.cursor()
+            cursor.execute(script)
+            db.commit()
+            db.close()
+        except:
+            print ('Error in reading database')
 
     # check if a packet has been delivered
     def isDelivered(self, packet, truck):
@@ -226,6 +239,7 @@ class Packet(object):
     # retrieve the position of the packet based on the truck position on T.S.
     def retrievePosition(self, truckid):
         channel = self.channelIDretrieve(truckid)
+        print (channel)
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
         try:
             pos = json.loads(requests.get(url).content)
@@ -262,12 +276,21 @@ class Packet(object):
             else:
                 print ('The id inserted is not valid!')
 
+        if uri[0] == 'undelivered':
+            if self.findPacket(params['packetid']):
+                try:
+                    self.notDelivered(params['packetid'])#, params['truckid'])
+                    return 'Packet ' + params['packetid'] + ' undelivered ' #+ params['truckid']
+
+                except:
+                    return 'Error in removing the packet'
+
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
                 truckid = self.retreivePacketAssociation(params['packetid'])
                 channel = self.channelIDretrieve(truckid)
                 position = self.retrievePosition(truckid)
-                webbrowser.open_new_tab('http://localhost/maps.php/?lat=' + str(position['lat']) + '&long=' + str(
+                webbrowser.open_new_tab('http://localhost/mapAndStats.php/?lat=' + str(position['lat']) + '&long=' + str(
                     position['long']) + '&channel=' + channel)
             else:
                 print ('The id inserted is not valid!')

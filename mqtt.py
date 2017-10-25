@@ -38,15 +38,13 @@ def channelAPIretrieve(channelID, api_key):
     try:
         x = requests.put(url).content
         xj = json.loads(x)
+
+        for i in xj['api_keys']:
+            if i['write_flag'] == True:
+                print(i['api_key'])
+                return i['api_key']
     except:
-        print('Impossible to connect to thingspeak. Check the channelID and the APIkey ')
-        return
-
-    for i in xj['api_keys']:
-        if i['write_flag'] == True:
-            print(i['api_key'])
-            return i['api_key']
-
+        print ('Impossible to connect to thingspeak. Check the channelID and the APIkey ')
 
 
 class TruckUpdating:
@@ -110,13 +108,11 @@ class TruckUpdating:
 
 if __name__ == '__main__':
     try:
-        user_api = requests.get(host + '/key').content
+        user_api = requests.get('http://' + host + '/key').content
+        idchannel = channelIDretrieve(sys.argv[1])
+        print(idchannel)
+        api_write = channelAPIretrieve(idchannel, user_api)
+        t = TruckUpdating(api_write, idchannel)
+        t.mqttConnection()
     except:
-        print('Impossible to connect to the server. Check the url and verify that the server is on.')
-        exit()
-    idchannel = channelIDretrieve(sys.argv[1])
-    print(idchannel)
-    api_write = channelAPIretrieve(idchannel, user_api)
-    t = TruckUpdating(api_write, idchannel)
-    t.mqttConnection()
-
+        print ('Impossible to connect to the server. Check the url and verify that the server is on.')
