@@ -67,7 +67,7 @@ class TruckUpdating:
         tTransport = "websockets"
 
         try:
-            json_file = open('gps.json').read()
+            json_file = open('gps_lecce_torino.json').read()
             gps = json.loads(json_file)
 
         except IOError:
