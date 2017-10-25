@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = 'http://192.168.1.109:8089'
+catalog = 'http://192.168.1.112:8089'
 
 class Packet(object):
     exposed = True
@@ -150,6 +150,7 @@ class Packet(object):
     def packetDelivered(self, packet):#, truck):
         #if self.findPacketinTruck(packet, truck):
         script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "'"
+        print (script)
         try:
             db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
             cursor = db.cursor()
@@ -158,11 +159,6 @@ class Packet(object):
             db.close()
         except:
             print ('Error in reading database')
-        # else:
-        #     if self.findPacket(packet):
-        #         return 'Packet ' + packet + 'not present in the truck ' + truck
-        #     else:
-        #         return 'Packet ' + packet + ' not present in the system at all'
 
     def notDelivered(self, packet):  # , truck):
         # if self.findPacketinTruck(packet, truck):
@@ -195,14 +191,6 @@ class Packet(object):
         else:
             return None
 
-    # retrieve list of trucks in the system
-    # def TrucksInSys(self):
-    #     data = requests.get(catalog + '/trucks').content
-    #     dataJSON = json.loads(data)
-    #     trucks = []
-    #     for element in dataJSON:
-    #         trucks.append(element['channelName'])
-    #     return trucks
 
     # retrieves from ThingSpeak the ID of a channel for a gien truckid
     def channelIDretrieve(self, truckID):
@@ -371,6 +359,25 @@ if __name__ == "__main__":
     except Exception as e:
         print ('The server is not at the url requested', catalog, e.message)
         exit()
+
+    fd = open('Dump20171015.sql', 'r')
+    sqlFile = fd.read()
+    fd.close()
+    # all SQL commands (split on ';')
+    sqlCommands = sqlFile.split(';')
+    try:
+        db = pymysql.connect(host='127.0.0.1', user="root", passwd="", db="tracking")
+        for command in sqlCommands:
+            cursor = db.cursor()
+            try:
+                cursor.execute(command)
+                db.commit()
+            except:
+                print ('')
+        db.close()
+    except:
+        print ('Error in accesssing database')
+
 
 
     conf = {
