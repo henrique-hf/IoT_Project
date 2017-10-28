@@ -26,16 +26,16 @@ def retrieveData(truckID):
             channel = t['channelID']
             break
 
-    topics = json.loads(requests.get(host + '/topics'))
+    topics = json.loads(requests.get(host + '/topics').content)
+    print (topics)
     url = "https://api.thingspeak.com/channels/" + channel + "/feeds/last"
     try:
         x = json.loads(requests.get(url).content)
         print (x)
         results = {'temperature': x[topics['temperature']],
                    'humidity': x[topics['humidity']],
-                   'hasovercome_t': x['field5'], #topics['hasovercome_t']],
-                   'hasovercome_h': x['field6']} #topics['hasovercom_h']]}
-        print (results)
+                   'hasovercome_t': x[topics['warning_temp']],
+                   'hasovercome_h': x[topics['warning_hum']]}
         return results
     except Exception as e:
         print ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
@@ -74,7 +74,7 @@ def on_message(msg,chat_id,offset,available_services):
 
     if msg['entities'][0]['type'] == 'bot_command':
 
-        bot.sendMessage(chat_id,"Enter yuor pack code:")
+        bot.sendMessage(chat_id,"Enter your pack code:")
 
         time.sleep(10)
         updates = bot.getUpdates(offset)
@@ -129,17 +129,13 @@ def on_message(msg,chat_id,offset,available_services):
                                     bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
 
                                     if int(s['hasovercome_t']) == 1:
-                                        threshold = json.loads(requests.get(host + '/threshold/'+truckid).content)
+                                        threshold = json.loads(requests.get(host + '/threshold/'+str(truckid)).content)
                                         print (threshold)
-                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at' + str(threshold['temperature']['threshold_max']))
+                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at ' + str(threshold['temperature']['threshold_max']))
                                     if int(s['hasovercome_t']) == -1:
-                                        threshold = json.loads(requests.get(host + '/threshold/'+truckid).content)
+                                        threshold = json.loads(requests.get(host + '/threshold/'+str(truckid)).content)
                                         print (threshold)
-                                        bot.sendMessage(chat_id,'The temperature has been below the set threshold set at' + str(threshold['temperature']['threshold_min']))
-
-
-
-                                    print (s)
+                                        bot.sendMessage(chat_id,'The temperature has been below the set threshold set at ' + str(threshold['temperature']['threshold_min']))
                                 else:
                                     bot.sendMessage(chat_id, 'Your packet is not in the system')
 
@@ -164,15 +160,12 @@ def on_message(msg,chat_id,offset,available_services):
                                     bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
 
                                     if int(s['hasovercome_h']) == 1:
-                                        threshold = json.loads(requests.get(host + '/threshold/' + truckid).content)
+                                        threshold = json.loads(requests.get(host + '/threshold/' + str(truckid)).content)
                                         bot.sendMessage(chat_id,
-                                                        'The humidity has overcome the set threshold set at' + str(threshold['humidity']['threshold_max'])+'%')
+                                                        'The humidity has overcome the set threshold set at ' + str(threshold['humidity']['threshold_max'])+'%')
                                     if int(s['hasovercome_h']) == -1:
-                                        threshold = json.loads(requests.get(host + '/threshold/' + truckid).content)
-                                        bot.sendMessage(chat_id,
-                                                        'The temperature has been below the set threshold set at' + str(threshold['humidity']['threshold_min'])+'%')
-
-                                    print (s)
+                                        threshold = json.loads(requests.get(host + '/threshold/' + str(truckid)).content)
+                                        bot.sendMessage(chat_id,'The temperature has been below the set threshold set at ' + str(threshold['humidity']['threshold_min'])+'%')
                                 else:
                                     bot.sendMessage(chat_id, 'Your packet is not in the system')
 
@@ -254,8 +247,3 @@ if __name__ == '__main__':
             chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
             on_message(msg[0]['message'],chat_id,offset,available_services)
             print (offset)
-
-
-
-
-
