@@ -47,10 +47,11 @@ def channelAPIretrieve(channelID, api_key):
 
 
 class TruckUpdating:
-    def __init__(self, api_key, channel_id):
+    def __init__(self, api_key, channel_id,chanel_name):
         # The Write API Key for the channel
         self.apiKey = api_key
         self.channelID = channel_id
+        self.channel_name = chanel_name
 
     def mqttConnection(self):
         try:
@@ -64,11 +65,15 @@ class TruckUpdating:
                 break
 
         mqttHost = "mqtt.thingspeak.com"
-        tTransport = "websockets"
 
         try:
-            json_file = open('gps_lecce_torino.json').read()
-            gps = json.loads(json_file)
+            if self.channel_name == '1':
+                json_file = open('gps.json').read()
+                gps = json.loads(json_file)
+
+            if self.channel_name == '2':
+                json_file = open('gps_lecce_torino.json').read()
+                gps = json.loads(json_file)
 
         except IOError:
             print('Errore nell\'apertura del file')
@@ -110,7 +115,7 @@ if __name__ == '__main__':
         idchannel = channelIDretrieve(sys.argv[1])
         print(idchannel)
         api_write = channelAPIretrieve(idchannel, user_api)
-        t = TruckUpdating(api_write, idchannel)
+        t = TruckUpdating(api_write, idchannel,sys.argv[1])
         t.mqttConnection()
     except:
         print('Impossible to connect to the server. Check the url and verify that the server is on.')
