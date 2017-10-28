@@ -3,8 +3,6 @@ import requests
 import json
 import time
 import telepot
-import cherrypy
-
 
 host = 'http://192.168.1.109:8089'
 try:
@@ -130,11 +128,10 @@ def on_message(msg,chat_id,offset,available_services):
 
                                     if int(s['hasovercome_t']) == 1:
                                         threshold = json.loads(requests.get(host + '/threshold/'+str(truckid)).content)
-                                        print (threshold)
                                         bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at ' + str(threshold['temperature']['threshold_max']))
                                     if int(s['hasovercome_t']) == -1:
                                         threshold = json.loads(requests.get(host + '/threshold/'+str(truckid)).content)
-                                        print (threshold)
+
                                         bot.sendMessage(chat_id,'The temperature has been below the set threshold set at ' + str(threshold['temperature']['threshold_min']))
                                 else:
                                     bot.sendMessage(chat_id, 'Your packet is not in the system')

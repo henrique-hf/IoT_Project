@@ -80,17 +80,13 @@ class TruckUpdating:
         except IOError:
             print('Errore nell\'apertura del file')
 
-        temperature = 15
-        humidity = 15
 
         for x in gps["trkpt"]:
 
-            #data = getTHSensorData()
+            data = getTHSensorData()
 
-            temperature += 2
-            humidity += 2
-            #temperature = data['temp']
-            #humidity = data['hum']
+            temperature = data['temp']
+            humidity = data['hum']
             if temperature > int(threshold['temperature']['threshold_max']):
                 hasovercome_t = 1
             elif temperature < int(threshold['temperature']['threshold_min']):
