@@ -3,7 +3,7 @@ import requests
 import json
 import time
 import telepot
-from zthingspeak import Truck
+import cherrypy
 
 
 host = 'http://192.168.1.109:8089'
@@ -18,7 +18,6 @@ flag = False
 def retrieveData(truckID):
     try:
         trucks = json.loads(requests.get(host + '/trucks').content)
-        print (trucks)
     except:
         print ('Error in accessing the catalog. Check your url')
     channel = ''
@@ -27,18 +26,20 @@ def retrieveData(truckID):
             channel = t['channelID']
             break
 
+    topics = json.loads(requests.get(host + '/topics'))
     url = "https://api.thingspeak.com/channels/" + channel + "/feeds/last"
     try:
         x = json.loads(requests.get(url).content)
-        results = {'temperature': x["field1"],
-                   'humidity': x["field2"]}
+        print (x)
+        results = {'temperature': x[topics['temperature']],
+                   'humidity': x[topics['humidity']],
+                   'hasovercome_t': x['field5'], #topics['hasovercome_t']],
+                   'hasovercome_h': x['field6']} #topics['hasovercom_h']]}
+        print (results)
         return results
     except Exception as e:
         print ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
         return ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
-
-
-
 
 
 def retrievePosition(truckid):
@@ -98,7 +99,7 @@ def on_message(msg,chat_id,offset,available_services):
                             try:
                                 print (truckid)
                                 if truckid != 0:
-                                    po = retrievePosition(str(truckid)) #todo modify function
+                                    po = retrievePosition(str(truckid))
                                     pos = json.loads(po)
                                     bot.sendLocation(chat_id, pos['lat'], pos['long'])
                                     return
@@ -108,8 +109,8 @@ def on_message(msg,chat_id,offset,available_services):
                                     return
 
                             except Exception as detail:
-                                bot.sendMessage(chat_id,"Error in accessing the database")
-                                print ('Error in accessing the database',detail.message)
+                                bot.sendMessage(chat_id,"Error in retrieving position")
+                                print ('Error in retrieving position',detail.message)
                                 return
                         else:
                             string = 'Operation not available for this service. You can perform:\n'
@@ -124,15 +125,27 @@ def on_message(msg,chat_id,offset,available_services):
                         if 'gettemperature' in available_services:
                             try:
                                 if truckid != 0:
-                                    s = retrieveData(truckid)
+                                    s = retrieveData(str(truckid))
                                     bot.sendMessage(chat_id,"Temperature = " + s['temperature'] + " C")
+
+                                    if int(s['hasovercome_t']) == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold/'+truckid).content)
+                                        print (threshold)
+                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at' + str(threshold['temperature']['threshold_max']))
+                                    if int(s['hasovercome_t']) == -1:
+                                        threshold = json.loads(requests.get(host + '/threshold/'+truckid).content)
+                                        print (threshold)
+                                        bot.sendMessage(chat_id,'The temperature has been below the set threshold set at' + str(threshold['temperature']['threshold_min']))
+
+
+
                                     print (s)
                                 else:
                                     bot.sendMessage(chat_id, 'Your packet is not in the system')
 
                             except Exception as e:
-                                bot.sendMessage(chat_id, "Error in accessing the database")
-                                print ('Error in accessing the database:',e.message)
+                                bot.sendMessage(chat_id, e.message)
+                                print ('Error',e.message)
 
                                 return
                         else:
@@ -149,6 +162,16 @@ def on_message(msg,chat_id,offset,available_services):
                                 if truckid != 0:
                                     s = retrieveData(truckid)
                                     bot.sendMessage(chat_id,"Humidity = " + s['humidity'] + " %")
+
+                                    if int(s['hasovercome_h']) == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold/' + truckid).content)
+                                        bot.sendMessage(chat_id,
+                                                        'The humidity has overcome the set threshold set at' + str(threshold['humidity']['threshold_max'])+'%')
+                                    if int(s['hasovercome_h']) == -1:
+                                        threshold = json.loads(requests.get(host + '/threshold/' + truckid).content)
+                                        bot.sendMessage(chat_id,
+                                                        'The temperature has been below the set threshold set at' + str(threshold['humidity']['threshold_min'])+'%')
+
                                     print (s)
                                 else:
                                     bot.sendMessage(chat_id, 'Your packet is not in the system')
@@ -174,6 +197,15 @@ def on_message(msg,chat_id,offset,available_services):
                                     bot.sendLocation(chat_id, pos['lat'], pos['long'])
                                     s = retrieveData(truckid)
                                     bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
+
+                                    if s['hasovercome_t'] == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold').content)
+                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at' + str(threshold['temperature']))
+
+                                    if s['hasovercome_h'] == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold').content)
+                                        bot.sendMessage(chat_id,'The humidity has overcome the set threshold set at' + str(threshold['humidity']))
+
 
                             except Exception as detail:
                                 bot.sendMessage(chat_id, "Error in accessing the database")
@@ -201,9 +233,8 @@ def on_message(msg,chat_id,offset,available_services):
     else:
         return
 
-
 if __name__ == '__main__':
-    time.sleep(10)
+    #time.sleep(10)
     bot = telepot.Bot('378511160:AAF8PCogZt5ZtPUp_gaJU2BPMoWnF6-8zuQ')
     offset = -1
     try:
@@ -215,6 +246,7 @@ if __name__ == '__main__':
     for x in services:
         if services[x] == True:
             available_services.append(str(x))
+
     while True:
         msg = bot.getUpdates(offset)
         if len(msg) != 0:
@@ -222,6 +254,8 @@ if __name__ == '__main__':
             chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
             on_message(msg[0]['message'],chat_id,offset,available_services)
             print (offset)
+
+
 
 
 

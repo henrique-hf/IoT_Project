@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = 'http://192.168.1.112:8089'
+catalog = 'http://192.168.1.109:8089'
 
 class Database(object):
     exposed = True

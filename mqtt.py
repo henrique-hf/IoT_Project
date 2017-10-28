@@ -2,12 +2,12 @@ from __future__ import print_function
 import requests
 import json
 import paho.mqtt.publish as publish
-import Adafruit_DHT
+#import Adafruit_DHT
 import time
 import datetime
 import sys
 
-host = 'http://192.168.1.112:8089'
+host = 'http://192.168.1.109:8089'
 
 
 def getTHSensorData():
@@ -56,6 +56,8 @@ class TruckUpdating:
     def mqttConnection(self):
         try:
             trucks = json.loads(requests.get(host + '/trucks').content)
+            threshold = json.loads(requests.get(host+'/threshold/'+self.channel_name).content)
+            print ('thr',threshold)
         except:
             print('Impossible to connect to the server. Check the url and verify that the server is online.')
 
@@ -78,13 +80,31 @@ class TruckUpdating:
         except IOError:
             print('Errore nell\'apertura del file')
 
+        temperature = 15
+        humidity = 15
+
         for x in gps["trkpt"]:
 
-            data = getTHSensorData()
-            temperature = data['temp']
-            humidity = data['hum']
-            # temperature = 22
-            # humidity = 33
+            #data = getTHSensorData()
+
+            temperature += 2
+            humidity += 2
+            #temperature = data['temp']
+            #humidity = data['hum']
+            if temperature > int(threshold['temperature']['threshold_max']):
+                hasovercome_t = 1
+            elif temperature < int(threshold['temperature']['threshold_min']):
+                hasovercome_t = -1
+            else:
+                hasovercome_t = 0
+            if humidity > int(threshold['temperature']['threshold_max']):
+                hasovercome_h = 1
+            elif humidity < int(threshold['temperature']['threshold_min']):
+                hasovercome_h = -1
+            else:
+                hasovercome_h = 0
+
+
             print(" temp =", temperature, "  hum =", humidity)
 
             # attempt to publish this data to the topic
@@ -94,7 +114,7 @@ class TruckUpdating:
                 lat = x['-lat']
                 lon = x['-lon']
                 tPayload = "field1=" + str(temperature) + "&field2=" + str(humidity) + "&field3=" + str(
-                    lat) + "&field4=" + str(lon)
+                    lat) + "&field4=" + str(lon)+"&field5="+str(hasovercome_t)+"&field6="+str(hasovercome_h)
                 print(tPayload)
                 print('Start pub', datetime.datetime.now())
                 publish.single(topic, payload=tPayload, hostname=mqttHost)
@@ -106,7 +126,7 @@ class TruckUpdating:
             except Exception as e:
                 print("There was an error while publishing the data.\n", e)
 
-            time.sleep(rate)
+            time.sleep(16)
 
 
 if __name__ == '__main__':
