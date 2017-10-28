@@ -1,7 +1,7 @@
 import cherrypy
 import json
 
-host = '192.168.1.112'
+host = '192.168.1.107'
 
 class Catalog(object):
     exposed = True
@@ -57,12 +57,6 @@ class Catalog(object):
             print self.catalog['trucks']
             print type(self.catalog['trucks'])
             return json.dumps(self.catalog['trucks'])
-        
-        elif uri[0] == 'stringTrucks':
-            string = ""
-            for truck in self.catalog['trucks']:
-                string = string + "," + truck['channelName']
-            return string
 
 
 # if __name__ == "__main__":

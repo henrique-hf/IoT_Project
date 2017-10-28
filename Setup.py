@@ -68,19 +68,39 @@ class Channels(object):
                 # print channelKey
                 return channelKey
 
+    def deleteAndRebuildDb(self):
+
+        fd = open('Dump20171015.sql', 'r')
+        sqlFile = fd.read()
+        fd.close()
+        # all SQL commands (split on ';')
+        sqlCommands = sqlFile.split(';')
+        try:
+            db = pymysql.connect(host='127.0.0.1', user="root", passwd="", db="tracking")
+            for command in sqlCommands:
+                cursor = db.cursor()
+                try:
+                    cursor.execute(command)
+                    print (command + ' eseguito')
+                except:
+                    print ('Error in script ' + command)
+            db.close()
+        except:
+            print ('Error in accesssing database')
+
 
 if __name__ == "__main__":
 
     channel = Channels()
 
     # clean thingspeak
-    print ('Deleting previous ThingSpeak configuration...')
     channel.deleteAll()
-    print ('Done')
-    print ('Updating new ThingSpeak configuration...')
+    channel.deleteAndRebuildDb()
+
     for truck in channel.conf['trucks']:
         name = truck.get('channelName')
         # print name
+
         channel.create(name)
 
         # add channel id and key to the dict
@@ -91,9 +111,6 @@ if __name__ == "__main__":
         truck['channelKey'] = key
         # print channel.conf
 
-    print ('Done')
-    print ('Creation of catalog.json')
     finalFile = open('catalog.json', 'w')
     finalFile.write(json.dumps(channel.conf))
     finalFile.close()
-    print ('Done')
