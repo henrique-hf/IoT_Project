@@ -106,7 +106,7 @@ class TruckUpdating:
             except Exception as e:
                 print("There was an error while publishing the data.\n", e)
 
-            time.sleep(20)
+            time.sleep(rate)
 
 
 if __name__ == '__main__':

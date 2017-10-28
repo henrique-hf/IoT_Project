@@ -18,3 +18,5 @@ CREATE TABLE `packet`(
   `long` varchar(45) NOT NULL,
   PRIMARY KEY (`packetid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+ALTER TABLE `tracking`.`packet`
+ADD COLUMN `chat_id` INT NULL AFTER `long`;

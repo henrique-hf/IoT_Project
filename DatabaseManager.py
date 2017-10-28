@@ -8,10 +8,10 @@ import qrcode
 
 catalog = 'http://192.168.1.112:8089'
 
-class Packet(object):
+class Database(object):
     exposed = True
 
-    def __init__(self):
+    def __init__(self,tobedeleted=True):
         ############# change the address of the webserver
         self.host = '127.0.0.1'
         try:
@@ -21,6 +21,28 @@ class Packet(object):
         self.topicsJSON = json.loads(self.topics)
         self.lat = self.topicsJSON['latitude']
         self.long = self.topicsJSON['longitude']
+
+        if tobedeleted:
+            self.deleteAndRebuildDB()
+
+    def deleteAndRebuildDB(self):
+        fd = open('Dump20171015.sql', 'r')
+        sqlFile = fd.read()
+        fd.close()
+        # all SQL commands (split on ';')
+        sqlCommands = sqlFile.split(';')
+        try:
+            db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
+            for command in sqlCommands:
+                cursor = db.cursor()
+                try:
+                    cursor.execute(command)
+                    db.commit()
+                except:
+                    print ('')
+            db.close()
+        except:
+            print ('Error in accesssing database')
 
     # generates an IdNumber for the packet based on the date
     def qrCodeGenerator(self, packetID="generic"):
@@ -360,33 +382,13 @@ if __name__ == "__main__":
         print ('The server is not at the url requested', catalog, e.message)
         exit()
 
-    fd = open('Dump20171015.sql', 'r')
-    sqlFile = fd.read()
-    fd.close()
-    # all SQL commands (split on ';')
-    sqlCommands = sqlFile.split(';')
-    try:
-        db = pymysql.connect(host='127.0.0.1', user="root", passwd="", db="tracking")
-        for command in sqlCommands:
-            cursor = db.cursor()
-            try:
-                cursor.execute(command)
-                db.commit()
-            except:
-                print ('')
-        db.close()
-    except:
-        print ('Error in accesssing database')
-
-
-
     conf = {
         "/": {
             "request.dispatch": cherrypy.dispatch.MethodDispatcher(),
             "tools.sessions.on": True,
         }
     }
-    cherrypy.tree.mount(Packet(), "/", conf)
+    cherrypy.tree.mount(Database(tobedeleted=False), "/", conf)
     cherrypy.config.update({
         "server.socket_host" : host,
         "server.socket_port": 8092})
