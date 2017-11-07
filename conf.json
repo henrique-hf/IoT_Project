@@ -4,36 +4,46 @@
       "raspberry": "rasp1",
       "channelName": "1",
       "temperature": {
-        "active": true
+        "active": true,
+        "threshold_max": "27",
+        "threshold_min": "19"
       },
       "humidity": {
-        "active": true
+        "active": true,
+        "threshold_max": "27",
+        "threshold_min": "19"
       },
       "position": {
         "active": true
       },
-      "samplingRate": 5
+      "samplingRate": 20
     },
     {
       "raspberry": "rasp2",
       "channelName": "2",
       "temperature": {
-        "active": true
+        "active": true,
+        "threshold_max": "27",
+        "threshold_min": "19"
       },
       "humidity": {
-        "active": true
+        "active": true,
+        "threshold_max": "27",
+        "threshold_min": "19"
       },
       "position": {
         "active": true
       },
-      "samplingRate": 5
+      "samplingRate": 20
     }
   ],
   "topics": {
     "temperature": "field1",
     "humidity": "field2",
     "latitude": "field3",
-    "longitude": "field4"
+    "longitude": "field4",
+    "warning_temp": "field5",
+    "warning_hum": "field6"
   },
   "broker": {
     "address": "mqtt.thingspeak.com"
@@ -44,7 +54,9 @@
     "getposition": true,
     "gethumidity": false,
     "gettemperature": true,
-    "getall": true
+    "getall": true, 
+    "getstats": true
   },
-  "database": "192.168.1.107"
+  "database": "192.168.1.112",
+  "analysis": "192.168.1.104:8089"
 }
