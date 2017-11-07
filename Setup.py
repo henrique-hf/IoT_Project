@@ -3,7 +3,7 @@ import json
 import pymysql
 
 class Channels(object):
-    def __init__(self):
+    def __init__(self, delete):
         #read json file with configurations
         self.file = open("conf.json", "r")
         self.conf = json.load(self.file)
@@ -15,6 +15,8 @@ class Channels(object):
         self.apiKey = self.conf["key"]
         # print 'user (' + str(type(self.user)) + '): ' + self.user
         # print 'API Key (' + str(type(self.apiKey)) + '): ' + self.apiKey
+
+        self.delete = delete
 
     # OK
     def deleteAll(self):
@@ -37,7 +39,8 @@ class Channels(object):
     def create(self, name):
         data = {'name': name, 'api_key': self.apiKey, 'public_flag': 'true',
                 self.conf['topics']['temperature']: 'Temperature', self.conf['topics']['humidity']: 'Humidity',
-                self.conf['topics']['latitude']: 'Latitude', self.conf['topics']['longitude']: 'Longitude'}
+                self.conf['topics']['latitude']: 'Latitude', self.conf['topics']['longitude']: 'Longitude',
+                self.conf['topics']['warning_temp']: 'Warning Temperature', self.conf['topics']['warning_hum']: 'Warning Humidity'}
         jsonData = json.dumps(data)
         # send the POST request to create the new channel
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
@@ -68,49 +71,34 @@ class Channels(object):
                 # print channelKey
                 return channelKey
 
-    def deleteAndRebuildDb(self):
-
-        fd = open('Dump20171015.sql', 'r')
-        sqlFile = fd.read()
-        fd.close()
-        # all SQL commands (split on ';')
-        sqlCommands = sqlFile.split(';')
-        try:
-            db = pymysql.connect(host='127.0.0.1', user="root", passwd="", db="tracking")
-            for command in sqlCommands:
-                cursor = db.cursor()
-                try:
-                    cursor.execute(command)
-                    print (command + ' eseguito')
-                except:
-                    print ('Error in script ' + command)
-            db.close()
-        except:
-            print ('Error in accesssing database')
-
 
 if __name__ == "__main__":
 
-    channel = Channels()
+    channel = Channels(delete=True)
 
-    # clean thingspeak
-    channel.deleteAll()
-    channel.deleteAndRebuildDb()
+    # delete and create channels if delete = True
+    if channel.delete:
+        print "Deleting old channels..."
+        # clean thingspeak
+        channel.deleteAll()
 
-    for truck in channel.conf['trucks']:
-        name = truck.get('channelName')
-        # print name
+        print "Creating channels..."
+        for truck in channel.conf['trucks']:
+            name = truck.get('channelName')
+            # print name
+            channel.create(name)
+            # add channel id and key to the dict
+            id = channel.getChannelID(name)
+            key = channel.getChannelKey(id)
 
-        channel.create(name)
+            truck['channelID'] = id
+            truck['channelKey'] = key
+            # print channel.conf
 
-        # add channel id and key to the dict
-        id = channel.getChannelID(name)
-        key = channel.getChannelKey(id)
+        print "Writing catalog.json..."
 
-        truck['channelID'] = id
-        truck['channelKey'] = key
-        # print channel.conf
+        finalFile = open('catalog.json', 'w')
+        finalFile.write(json.dumps(channel.conf))
+        finalFile.close()
 
-    finalFile = open('catalog.json', 'w')
-    finalFile.write(json.dumps(channel.conf))
-    finalFile.close()
+    print "Setup completed."
