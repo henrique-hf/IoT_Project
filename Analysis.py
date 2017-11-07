@@ -8,6 +8,7 @@ url = 'https://api.thingspeak.com/channels/'
 
 
 class Statistics(object):
+    exposed = True
 
     def __init__(self):
         self.topics = json.loads(requests.get(homeCatalog + '/topics').content)
@@ -120,6 +121,20 @@ class Statistics(object):
         percentage = 1 - (float(total) / len(listWarningsHum))
 
         return json.dumps({'below': below, 'above': above, 'total': total, 'percentage': round(percentage,2)})
+
+    def GET(self,*uri, **param):
+        if uri[0] == 'averageTemp':
+            return self.averageTemp(param['truck'])
+
+        elif uri[0] == 'averageHum':
+            return self.averageHum(param['truck'])
+
+        elif uri[0] == 'warningsTemp':
+            return self.warningsTemp(param['truck'])
+
+        elif uri[0] == 'warningsHum':
+            return self.warningsHum(param['truck'])
+
 
 
 if __name__ == "__main__":
