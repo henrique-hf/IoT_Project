@@ -1,7 +1,7 @@
 import cherrypy
 import json
 
-host = '192.168.1.107'
+host = '192.168.1.109'
 
 class Catalog(object):
     exposed = True
@@ -53,27 +53,31 @@ class Catalog(object):
             print type(self.catalog['database'])
             return self.catalog['database']
 
+        elif uri[0] == 'analysis':
+            print self.catalog['analysis']
+            return self.catalog['analysis']
+
         elif uri[0] == 'trucks':
             print self.catalog['trucks']
             print type(self.catalog['trucks'])
             return json.dumps(self.catalog['trucks'])
+        
+        elif uri[0] == 'stringTrucks':
+            string = ""
+            for truck in self.catalog['trucks']:
+                string = string + "," + truck['channelName']
+            return string
 
+        elif uri[0] == 'threshold':
+            threshold = {'humidity': {'threshold_max': 100, 'threshold_min': 0}, 'temperature': {'threshold_max': 100, 'threshold_min': 0}}
+            for truck in self.catalog['trucks']:
+                if truck['channelName'] == uri[1]:
+                    threshold['humidity']["threshold_max"] = truck['humidity']['threshold_max']
+                    threshold['humidity']["threshold_min"] = truck['humidity']['threshold_min']
+                    threshold['temperature']["threshold_max"] = truck['temperature']['threshold_max']
+                    threshold['temperature']["threshold_min"] = truck['temperature']['threshold_min']
+            return json.dumps(threshold)
 
-# if __name__ == "__main__":
-#     conf = {
-#         "/": {
-#             "request.dispatch": cherrypy.dispatch.MethodDispatcher(),
-#             "tools.sessions.on": True,
-#         }
-#     }
-#     # cherrypy.config.update({
-#     #     # server.socket_host": 'localhost',
-#     #     "server.socket_host": '192.168.1.109',
-#     #     "server.socket_port": 8080})
-#     cherrypy.tree.mount(Catalog(), "/", conf)
-#     cherrypy.engine.start()
-#     cherrypy.engine.block()
-#     # cherrypy.quickstart(Catalog(), '/', conf)
 
 if __name__ == "__main__":
         conf = {
