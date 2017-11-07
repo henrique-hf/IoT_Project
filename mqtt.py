@@ -7,7 +7,7 @@ import time
 import datetime
 import sys
 
-host = 'http://192.168.1.109:8089'
+host = 'http://192.168.1.100:8089'
 
 
 def getTHSensorData():
