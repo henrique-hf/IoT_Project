@@ -13,6 +13,19 @@ last_processed = 0
 flag = False
 
 
+def retrieveStats(truckID):
+    try:
+        trucks = json.loads(requests.get(host + '/trucks').content)
+    except:
+        print ('Error in accessing the catalog. Check your url')
+    channel = ''
+    for t in trucks:
+        if t['channelName'] == str(truckID):
+            channel = t['channelID']
+            break
+
+
+
 def retrieveData(truckID):
     try:
         trucks = json.loads(requests.get(host + '/trucks').content)
@@ -25,7 +38,7 @@ def retrieveData(truckID):
             break
 
     topics = json.loads(requests.get(host + '/topics').content)
-    print (topics)
+
     url = "https://api.thingspeak.com/channels/" + channel + "/feeds/last"
     try:
         x = json.loads(requests.get(url).content)
@@ -207,6 +220,38 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += x
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
+                    elif msg['text'] == '/getstats' or msg['text'] == '/getstats@packet_bot':
+                        if 'getall' in available_services:
+                            try:
+                                if truckid!=0:
+                                    po = retrieveStats(str(truckid))
+                                    pos = json.loads(po)
+                                    bot.sendLocation(chat_id, pos['lat'], pos['long'])
+                                    s = retrieveData(truckid)
+                                    bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
+
+                                    if s['hasovercome_t'] == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold').content)
+                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at' + str(threshold['temperature']))
+
+                                    if s['hasovercome_h'] == 1:
+                                        threshold = json.loads(requests.get(host + '/threshold').content)
+                                        bot.sendMessage(chat_id,'The humidity has overcome the set threshold set at' + str(threshold['humidity']))
+
+
+                            except Exception as detail:
+                                bot.sendMessage(chat_id, "Error in accessing the database")
+                                print ('Error in accessing the database', detail.message)
+                                return
+                        else:
+                            string = 'Operation not available for this service. You can perform:\n'
+                            for x in available_services:
+                                string += x
+                                string += '\n'
+                            bot.sendMessage(chat_id,string)
+
+
+
 
                     else:
                         bot.sendMessage(chat_id,'Command not found!')

@@ -6,7 +6,7 @@ import cherrypy
 import webbrowser
 import qrcode
 
-catalog = 'http://192.168.1.109:8089'
+catalog = 'http://192.168.1.100:8089'
 
 class Database(object):
     exposed = True
@@ -317,7 +317,7 @@ class Database(object):
 
             try:
                 geometry = json.loads(
-                    requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address + "&key=AIzaSyCx5ZMkXsQzq9E8etxOEIh-6fBYE9yAlCs").content)
+                    requests.get('https://maps.googleapis.com/maps/api/geocode/json?address=' + complete_address + "&key=AIzaSyCSfgo_ma9ajuxnqbOmrs3PBWnWfZn5fik").content)
 
                 lat = geometry['results'][0]['geometry']['location']['lat']
                 long = geometry['results'][0]['geometry']['location']['lng']
