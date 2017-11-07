@@ -131,8 +131,8 @@ if __name__ == '__main__':
     except:
         print('Impossible to connect to the server. Check the url and verify that the server is on.')
 
-        idchannel = channelIDretrieve(sys.argv[1])
-        print(idchannel)
-        api_write = channelAPIretrieve(idchannel, user_api)
-        t = TruckUpdating(api_write, idchannel,sys.argv[1])
-        t.mqttConnection()
+    idchannel = channelIDretrieve(sys.argv[1])
+    print(idchannel)
+    api_write = channelAPIretrieve(idchannel, user_api)
+    t = TruckUpdating(api_write, idchannel,sys.argv[1])
+    t.mqttConnection()
