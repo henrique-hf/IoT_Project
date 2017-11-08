@@ -2,8 +2,8 @@ import requests
 import json
 import cherrypy
 
-host = '192.168.1.112'
-homeCatalog = 'http://192.168.1.112:8088'
+host = '192.168.1.100'
+homeCatalog = 'http://192.168.1.100:8089'
 url = 'https://api.thingspeak.com/channels/'
 
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     cherrypy.tree.mount(Statistics(), "/", conf)
     cherrypy.config.update({
         "server.socket_host": host,
-        "server.socket_port": 8089})
+        "server.socket_port": 8090})
     cherrypy.engine.start()
     cherrypy.engine.block()
 

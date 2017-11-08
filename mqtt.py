@@ -7,7 +7,7 @@ import time
 import datetime
 import sys
 
-host = 'http://192.168.1.100:8089'
+host = 'http://192.168.1.109:8089'
 
 
 def getTHSensorData():
@@ -122,7 +122,7 @@ class TruckUpdating:
             except Exception as e:
                 print("There was an error while publishing the data.\n", e)
 
-            time.sleep(16)
+            time.sleep(rate)
 
 
 if __name__ == '__main__':

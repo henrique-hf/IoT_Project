@@ -15,14 +15,15 @@ flag = False
 
 def retrieveStats(truckID):
     try:
-        trucks = json.loads(requests.get(host + '/trucks').content)
+        analysis = requests.get(host+'/analysis').content
+        print (analysis)
+        stats = json.loads(requests.get('http://'+ analysis + '/statistics?truck='+str(truckID)).content)
+        return stats
     except:
-        print ('Error in accessing the catalog. Check your url')
-    channel = ''
-    for t in trucks:
-        if t['channelName'] == str(truckID):
-            channel = t['channelID']
-            break
+        print ('Error in accessing the catalog for statics retrieving. Check your url')
+
+
+
 
 
 
@@ -221,27 +222,46 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
                     elif msg['text'] == '/getstats' or msg['text'] == '/getstats@packet_bot':
-                        if 'getall' in available_services:
+                        if 'getstats' in available_services:
                             try:
                                 if truckid!=0:
-                                    po = retrieveStats(str(truckid))
-                                    pos = json.loads(po)
-                                    bot.sendLocation(chat_id, pos['lat'], pos['long'])
-                                    s = retrieveData(truckid)
-                                    bot.sendMessage(chat_id, "Temperature =" + s['temperature'] +  " C\n Humidity = " + s['humidity'] + " %")
+                                    stats = retrieveStats(str(truckid))
+                                    print(host + '/threshold/'+ str(truckid))
+                                    threshold = json.loads(requests.get(host + '/threshold/'+ str(truckid)).content)
+                                    print (threshold)
+                                    string = "The average temperature of the environment is " + str(stats['averageTemp']) + "C\n"
+                                    string += "The average humidity in time is " + str(stats['averageHum']) + '%\n'
 
-                                    if s['hasovercome_t'] == 1:
-                                        threshold = json.loads(requests.get(host + '/threshold').content)
-                                        bot.sendMessage(chat_id,'The temperature has overcome the set threshold set at' + str(threshold['temperature']))
+                                    string += 'The temperature has overcome the given threshold ' + str(stats['warningTemp']['below'] + stats['warningTemp']['above']) + ' times'
+                                    if (stats['warningTemp']['below'] + stats['warningTemp']['above']) > 0:
+                                        if stats['warningTemp']['below'] * stats['warningTemp']['above'] > 0:
+                                            string += ': ' + str(stats['warningTemp']['below']) + ' times below the minimum threshold of ' + threshold['temperature']['threshold_min'] +'C and ' + str(stats['warningTemp']['above']) + ' times above the maximum threshold of ' + str(threshold['temperature']['threshold_max']) + 'C\n'
+                                        elif stats['warningTemp']['below'] > 0:
+                                            string += ': ' + str(stats['warningTemp']['below']) + ' times below the minimum threshold of ' + threshold['temperature']['threshold_min'] + 'C.'
+                                        else:
+                                            string += ': ' + str(stats['warningTemp']['above']) + ' times above the maximum threshold of ' + threshold['temperature']['threshold_max'] + 'C.'
+                                    else:
+                                        string += '.\n'
 
-                                    if s['hasovercome_h'] == 1:
-                                        threshold = json.loads(requests.get(host + '/threshold').content)
-                                        bot.sendMessage(chat_id,'The humidity has overcome the set threshold set at' + str(threshold['humidity']))
+                                    string += 'The humidity has overcome the given threshold ' + str(stats['warningHum']['below'] + stats['warningHum']['above']) + ' times'
+                                    if (stats['warningHum']['below'] + stats['warningHum']['above']) > 0:
+                                        if stats['warningHum']['below'] * stats['warningHum']['above'] > 0:
+                                            string += ': ' + str(stats['warningHum']['below']) + ' times below the minimum threshold of ' + threshold['humidity']['threshold_min'] +'% and ' + str(stats['warningHum']['above']) + ' times above the maximum threshold of ' + str(threshold['humidity']['threshold_max']) + '%\n'
+                                        elif stats['warningHum']['below'] > 0:
+                                            string += ': ' + str(stats['warningHum']['below']) + ' times below the minimum threshold of ' + threshold['humidity']['threshold_min'] + '%.'
+                                        else:
+                                            string += ': ' + str(stats['warningHum']['above']) + ' times above the maximum threshold of ' + threshold['humidity']['threshold_max'] + '%.'
+
+                                    else:
+                                        string += '.'
+
+                                    print (string)
+                                    bot.sendMessage(chat_id,string)
 
 
                             except Exception as detail:
-                                bot.sendMessage(chat_id, "Error in accessing the database")
-                                print ('Error in accessing the database', detail.message)
+                                bot.sendMessage(chat_id, "Error in sending stats message")
+                                print ('Error in sending stat message', detail.message)
                                 return
                         else:
                             string = 'Operation not available for this service. You can perform:\n'
@@ -281,6 +301,8 @@ if __name__ == '__main__':
     for x in services:
         if services[x] == True:
             available_services.append(str(x))
+
+    print ('Bot is running...')
 
     while True:
         msg = bot.getUpdates(offset)
