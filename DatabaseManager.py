@@ -90,8 +90,6 @@ class Database(object):
             db.commit()
             print_script = 'SELECT * FROM tracking.packet as tp ORDER BY tp.packetid desc'
             cursor.execute(print_script)
-            for row in cursor.fetchall():
-                print (row)
             db.close()
 
         except Exception as e:
@@ -166,13 +164,10 @@ class Database(object):
             print ('Error in reading database')
             return 0
 
-    # returns the truckid given the id of the packet
-
     # update the status of the delivery to delivered
     def packetDelivered(self, packet):#, truck):
         #if self.findPacketinTruck(packet, truck):
         script = "UPDATE `tracking`.`p_t` SET `delivered`='1' WHERE `packetid`='" + packet + "'"
-        print (script)
         try:
             db = pymysql.connect(host=self.host, user="root", passwd="", db="tracking")
             cursor = db.cursor()
@@ -213,7 +208,6 @@ class Database(object):
         else:
             return None
 
-
     # retrieves from ThingSpeak the ID of a channel for a gien truckid
     def channelIDretrieve(self, truckID):
         ##### change address (home catalog)
@@ -226,7 +220,6 @@ class Database(object):
         for element in dataJSON:
             if element['channelName'] == str(truckID):
                 return element['channelID']
-
 
     #retrieve the truck associated to the packet
     def retreivePacketAssociation(self, packetid):
@@ -249,7 +242,6 @@ class Database(object):
     # retrieve the position of the packet based on the truck position on T.S.
     def retrievePosition(self, truckid):
         channel = self.channelIDretrieve(truckid)
-        print (channel)
         url = 'https://api.thingspeak.com/channels/' + str(channel) + '/feeds/last'
         try:
             pos = json.loads(requests.get(url).content)
@@ -286,31 +278,20 @@ class Database(object):
             else:
                 print ('The id inserted is not valid!')
 
-        if uri[0] == 'undelivered':
-            if self.findPacket(params['packetid']):
-                try:
-                    self.notDelivered(params['packetid'])#, params['truckid'])
-                    return 'Packet ' + params['packetid'] + ' undelivered ' #+ params['truckid']
-
-                except:
-                    return 'Error in removing the packet'
-
         if uri[0] == 'findPacket':
             if self.findPacket(params['packetid']):
                 truckid = self.retreivePacketAssociation(params['packetid'])
                 channel = self.channelIDretrieve(truckid)
                 position = self.retrievePosition(truckid)
-                webbrowser.open_new_tab('http://localhost/mapAndStats.php/?lat=' + str(position['lat']) + '&long=' + str(
+                webbrowser.open_new_tab('http://localhost/maps.php/?lat=' + str(position['lat']) + '&long=' + str(
                     position['long']) + '&channel=' + channel)
             else:
                 print ('The id inserted is not valid!')
                 webbrowser.open('http://localhost/web_not_found.html')
 
-        if uri[0] == 'booleanPacket':
-            return str(self.findPacket(params['packetid']))
-
         if uri[0] == 'packetInTruck':
             return str(self.findPacketinTruck(params['packetid'], params['truckid']))
+
 
         if uri[0] == 'create':
             complete_address = params['address'] + " " + params['nr'] + " " + params['zip'] + " " + params['city']
@@ -344,6 +325,22 @@ class Database(object):
                     return 'Error in inserting the packet'
             else:
                 return 'Packet not present in the system'
+
+
+
+        if uri[0] == 'undelivered':
+            if self.findPacket(params['packetid']):
+                try:
+                    self.notDelivered(params['packetid'])#, params['truckid'])
+                    return 'Packet ' + params['packetid'] + ' undelivered ' #+ params['truckid']
+
+                except:
+                    return 'Error in removing the packet'
+
+
+        if uri[0] == 'booleanPacket':
+            return str(self.findPacket(params['packetid']))
+
 
         if uri[0] == 'delivered':
             if self.findPacket(params['packetid']):# and self.findPacketinTruck(params['packetid'], params['truckid']):
@@ -390,7 +387,7 @@ if __name__ == "__main__":
     }
     cherrypy.tree.mount(Database(tobedeleted=False), "/", conf)
     cherrypy.config.update({
-        "server.socket_host" : host,
+        "server.socket_host": host,
         "server.socket_port": 8092})
     cherrypy.engine.start()
     cherrypy.engine.block()

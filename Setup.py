@@ -1,6 +1,5 @@
 import requests
 import json
-import pymysql
 
 class Channels(object):
     def __init__(self, delete):

@@ -7,7 +7,7 @@ import time
 import datetime
 import sys
 
-host = 'http://192.168.1.109:8089'
+host = 'http://192.168.1.102:8089'
 
 
 def getTHSensorData():
@@ -106,12 +106,10 @@ class TruckUpdating:
             # attempt to publish this data to the topic
             try:
                 topic = "channels/" + self.channelID + "/publish/" + self.apiKey
-                print(topic)
                 lat = x['-lat']
                 lon = x['-lon']
                 tPayload = "field1=" + str(temperature) + "&field2=" + str(humidity) + "&field3=" + str(
                     lat) + "&field4=" + str(lon)+"&field5="+str(hasovercome_t)+"&field6="+str(hasovercome_h)
-                print(tPayload)
                 print('Start pub', datetime.datetime.now())
                 publish.single(topic, payload=tPayload, hostname=mqttHost)
                 print('End pub', datetime.datetime.now())

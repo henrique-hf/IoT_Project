@@ -22,11 +22,6 @@ def retrieveStats(truckID):
     except:
         print ('Error in accessing the catalog for statics retrieving. Check your url')
 
-
-
-
-
-
 def retrieveData(truckID):
     try:
         trucks = json.loads(requests.get(host + '/trucks').content)
@@ -53,7 +48,6 @@ def retrieveData(truckID):
         print ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
         return ('Problem in ThingSpeak Connection! Verify the channelID ',channel,e.message)
 
-
 def retrievePosition(truckid):
     try:
         trucks = json.loads(requests.get(host + '/trucks').content)
@@ -74,7 +68,6 @@ def retrievePosition(truckid):
     except Exception as e:
         print('Problem in ThingSpeak Connection! Verify the channelID ', channel, e.message)
         return ('Problem in ThingSpeak Connection! Verify the channelID ', channel, e.message)
-
 
 def on_message(msg,chat_id,offset,available_services):
 
@@ -99,7 +92,6 @@ def on_message(msg,chat_id,offset,available_services):
 
                     try:
                         truckid = int(requests.get(database + '/findAssociation?packetid=' + str(packet)).content)
-                        print (truckid)
                     except Exception as e:
                         bot.sendMessage(chat_id, 'Connection Error')
                         print('Connection Error. Check the database URL')
@@ -109,7 +101,6 @@ def on_message(msg,chat_id,offset,available_services):
 
                         if 'getposition' in available_services:
                             try:
-                                print (truckid)
                                 if truckid != 0:
                                     po = retrievePosition(str(truckid))
                                     pos = json.loads(po)
@@ -130,8 +121,6 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += x
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
-
-
 
                     elif msg['text'] == "/gettemperature" or msg['text'] == "/gettemperature@packet_bot":
                         if 'gettemperature' in available_services:
@@ -191,7 +180,6 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
 
-
                     elif msg['text'] == '/getall' or msg['text'] == '/getall@packet_bot':
                         if 'getall' in available_services:
                             try:
@@ -221,14 +209,13 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += x
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
+
                     elif msg['text'] == '/getstats' or msg['text'] == '/getstats@packet_bot':
                         if 'getstats' in available_services:
                             try:
                                 if truckid!=0:
                                     stats = retrieveStats(str(truckid))
-                                    print(host + '/threshold/'+ str(truckid))
                                     threshold = json.loads(requests.get(host + '/threshold/'+ str(truckid)).content)
-                                    print (threshold)
                                     string = "The average temperature of the environment is " + str(stats['averageTemp']) + "C\n"
                                     string += "The average humidity in time is " + str(stats['averageHum']) + '%\n'
 
@@ -255,7 +242,6 @@ def on_message(msg,chat_id,offset,available_services):
                                     else:
                                         string += '.'
 
-                                    print (string)
                                     bot.sendMessage(chat_id,string)
 
 
@@ -269,9 +255,6 @@ def on_message(msg,chat_id,offset,available_services):
                                 string += x
                                 string += '\n'
                             bot.sendMessage(chat_id,string)
-
-
-
 
                     else:
                         bot.sendMessage(chat_id,'Command not found!')
@@ -309,5 +292,8 @@ if __name__ == '__main__':
         if len(msg) != 0:
             offset = msg[0]['update_id']+1
             chat_id,msg_id = telepot.message_identifier(msg[0]['message'])
-            on_message(msg[0]['message'],chat_id,offset,available_services)
-            print (offset)
+            print ('Message ' + str(msg_id) +' received from chat ' + str(chat_id))
+            try:
+                on_message(msg[0]['message'],chat_id,offset,available_services)
+            except:
+                print ('Error in message receiving')

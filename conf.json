@@ -5,13 +5,13 @@
       "channelName": "1",
       "temperature": {
         "active": true,
-        "threshold_max": "27",
+        "threshold_max": "23",
         "threshold_min": "19"
       },
       "humidity": {
         "active": true,
-        "threshold_max": "27",
-        "threshold_min": "19"
+        "threshold_max": "40",
+        "threshold_min": "30"
       },
       "position": {
         "active": true
@@ -23,13 +23,13 @@
       "channelName": "2",
       "temperature": {
         "active": true,
-        "threshold_max": "27",
-        "threshold_min": "19"
+        "threshold_max": "5",
+        "threshold_min": "3"
       },
       "humidity": {
         "active": true,
-        "threshold_max": "27",
-        "threshold_min": "19"
+        "threshold_max": "25",
+        "threshold_min": "15"
       },
       "position": {
         "active": true
@@ -52,11 +52,11 @@
   "user": "s201586",
    "telegram": {
     "getposition": true,
-    "gethumidity": false,
+    "gethumidity": true,
     "gettemperature": true,
     "getall": true, 
     "getstats": true
   },
-  "database": "192.168.1.100",
-  "analysis": "192.168.1.109:8090"
+  "database": "192.168.1.102",
+  "analysis": "192.168.1.102:8090"
 }
